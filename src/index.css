@@ -658,3 +658,11 @@ img {
     transition: none;
   }
 }
+
+.back-to-top {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  box-shadow: var(--shadow);
+}

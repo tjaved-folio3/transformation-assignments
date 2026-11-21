@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { fetchProducts, toProductSearchParams } from '../../api/products.ts';
+import { BackToTop } from '../../components/BackToTop.tsx';
 import { EmptyState, ErrorState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { formatCount } from '../../utils/format.ts';
@@ -14,7 +15,7 @@ export function ProductListPage() {
   const query = filtersToQuery(filters);
   // The query string is the identity key: same filters → same key.
   const key = `products?${toProductSearchParams(query).toString()}`;
-  const { state, refetch } = useApiQuery(key, () => fetchProducts(query));
+  const { state, refetch } = useApiQuery(key, (signal) => fetchProducts(query, signal));
 
   function renderResults() {
     switch (state.status) {
@@ -85,6 +86,7 @@ export function ProductListPage() {
         canClear={hasActiveFilters(filters)}
       />
       {renderResults()}
+      <BackToTop />
     </>
   );
 }

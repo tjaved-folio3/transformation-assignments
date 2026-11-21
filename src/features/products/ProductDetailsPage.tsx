@@ -1,15 +1,32 @@
 import { Link, useParams } from 'react-router';
 import { ApiRequestError } from '../../api/client.ts';
 import { fetchProduct } from '../../api/products.ts';
+import { BackToTop } from '../../components/BackToTop.tsx';
 import { NotFoundPage } from '../../components/NotFoundPage.tsx';
 import { ErrorState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
 
+/** Ids run from p-0001 to p-5000 (see docs/api-contract.md). */
+const LAST_PRODUCT_NUMBER = 5000;
+
+/** "p-0042" → { previous: "p-0041", next: "p-0043" } (undefined at the ends). */
+function neighbourIds(id: string) {
+  const number = Number(id.slice(2));
+  const toId = (value: number) => `p-${String(value).padStart(4, '0')}`;
+  if (!id.startsWith('p-') || !Number.isInteger(number)) return {};
+  return {
+    previous: number > 1 ? toId(number - 1) : undefined,
+    next: number < LAST_PRODUCT_NUMBER ? toId(number + 1) : undefined,
+  };
+}
+
 export function ProductDetailsPage() {
   const { id = '' } = useParams();
-  const { state, refetch } = useApiQuery(`product:${id}`, () => fetchProduct(id));
+  // The signal lets useApiQuery cancel this request when `id` changes or the page closes.
+  const { state, refetch } = useApiQuery(`product:${id}`, (signal) => fetchProduct(id, signal));
+  const { previous, next } = neighbourIds(id);
 
   if (state.status === 'error' && state.error instanceof ApiRequestError && state.error.status === 404) {
     return <NotFoundPage title="Product not found" message="This product doesn't exist or was removed." />;
@@ -42,6 +59,12 @@ export function ProductDetailsPage() {
           </div>
         </article>
       )}
+      {/* Quick product switching: the scenario D2-4 must handle safely. */}
+      <nav className="details__nav" aria-label="Browse products">
+        {previous ? <Link to={`/products/${previous}`}>← Previous product</Link> : <span />}
+        {next && <Link to={`/products/${next}`}>Next product →</Link>}
+      </nav>
+      <BackToTop />
     </>
   );
 }

@@ -141,3 +141,16 @@ Each task records what we chose, what else we considered, and why.
 **How to trigger each state:** Mock API controls → "Product list → 500" (error), "Slow" network (loading), search for `zzzz` (empty), `/?page=999`, `/products/p-9999` (404).
 
 **Considered:** a spinner instead of skeletons. Simpler, but the page jumps when content arrives, and skeletons feel faster.
+
+---
+
+## D2-4: Cleaning up effects
+
+**Choice:** every `useEffect` that starts something returns a cleanup function that stops it. React runs that cleanup before re-running the effect and when the component unmounts.
+
+- **Requests:** `useApiQuery` creates an `AbortController` per run and calls `abort()` in cleanup. Switching from p-0001 to p-0002 cancels p-0001's request at the network level, so its late response can't overwrite p-0002. As a second guard, results are only stored when the signal is not aborted.
+- **Listeners:** `BackToTop` adds a passive `scroll` listener on mount and removes it on unmount.
+
+**The bug this fixed:** before this task, a slow old response arriving after a fast new one replaced the new result. The page then showed "loading" forever (or, without our key check, the wrong product). Reproduce it: choose the "Random" network speed and click "Next product →" quickly 8 times; the final page always matches the URL. `useApiQuery.test.ts` proves it by resolving responses in reverse order.
+
+**Considered:** an `ignore` flag (`let ignore = false; return () => { ignore = true }`). It prevents the stale update, but the request keeps running and using bandwidth. `AbortController` actually cancels it, and we still check `signal.aborted` before updating state.
