@@ -230,3 +230,21 @@ State changes **only** by dispatching these actions. Reducers enforce the rules 
 - **React Context + `useReducer`:** fine for small apps, but every consumer re-renders on any change, and there are no DevTools.
 - **Zustand:** less boilerplate, but the brief's topic is Redux Toolkit.
 - **Putting products in Redux:** it would make Redux a hand-rolled cache. That's RTK Query's job (see D3-5).
+
+---
+
+## D3-3: Authentication
+
+**Choice:**
+
+- **Session in Redux** (`auth` slice), persisted to `localStorage` by a listener middleware. Reducers stay pure; side effects happen in the listener.
+- **`<ProtectedRoute>`** is a layout route that renders `<Outlet />` when signed in and otherwise `<Navigate to="/login" state={{ from }} />`.
+- **Any 401** on an authenticated request dispatches `sessionExpired()` from the data layer, so the session is cleared in exactly one place.
+
+Full details and the token-storage trade-off are in [`docs/auth.md`](auth.md).
+
+**Considered:**
+
+- **React Router loaders** (`redirect()` inside a loader): powerful, but they would mix data loading into routing.
+- **A wrapper component per page:** too easy to forget on a new page.
+- **Checking auth inside each page:** duplicated logic.

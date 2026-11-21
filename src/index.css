@@ -696,3 +696,69 @@ img {
   color: var(--color-accent-hover);
   font-weight: 500;
 }
+
+/* ---------- Forms, auth, account ---------- */
+
+.auth-card {
+  max-width: 420px;
+  margin: 1rem auto;
+  padding: 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.auth-card__hint {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.auth-card code {
+  font-family: var(--font-mono);
+  background: var(--color-bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form__error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+  font-weight: 500;
+}
+
+.account {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.account dt {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.account dd {
+  margin: 0;
+}
