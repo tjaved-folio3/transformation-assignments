@@ -46,7 +46,16 @@ const CATALOG: Record<Category, CategoryCatalog> = {
     maxPrice: 3499,
   },
   stickers: {
-    adjectives: ['Works On My Machine', 'Ship It', 'LGTM', '404', 'Semicolon', 'Git Blame', 'Tabs vs Spaces', 'Null Pointer'],
+    adjectives: [
+      'Works On My Machine',
+      'Ship It',
+      'LGTM',
+      '404',
+      'Semicolon',
+      'Git Blame',
+      'Tabs vs Spaces',
+      'Null Pointer',
+    ],
     nouns: ['Sticker', 'Sticker Pack', 'Holo Sticker', 'Laptop Decal'],
     minPrice: 199,
     maxPrice: 999,

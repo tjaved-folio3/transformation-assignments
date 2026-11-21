@@ -9,7 +9,4 @@
  *   if (state.status === 'loading') state.data   // compile error
  */
 export type RequestState<T> =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; data: T }
-  | { status: 'error'; error: unknown };
+  { status: 'idle' } | { status: 'loading' } | { status: 'success'; data: T } | { status: 'error'; error: unknown };

@@ -174,7 +174,8 @@ export const handlers = [
       const forced = index === 0 && isScenarioOn('orders-409');
       if (product && (forced || item.quantity > product.stock)) {
         const left = forced ? 0 : product.stock;
-        outOfStock[item.productId] = left === 0 ? `${product.name} is out of stock` : `Only ${left} of ${product.name} left`;
+        outOfStock[item.productId] =
+          left === 0 ? `${product.name} is out of stock` : `Only ${left} of ${product.name} left`;
       }
     });
     if (Object.keys(outOfStock).length > 0) {

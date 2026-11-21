@@ -9,6 +9,7 @@ Each task records what we chose, what else we considered, and why.
 **Choice:** Build The Bug Bazaar in this repository (`transformation-assignments`), on a new branch `feature/bug-bazaar`, keeping all existing history.
 
 **Considered:**
+
 - Starting from the Week 1 `bug-bounty-starter` folder.
 - Creating a new repository.
 
@@ -24,7 +25,7 @@ Each task records what we chose, what else we considered, and why.
 
 **Contract types:** `src/types/api.ts` mirrors the shared contract. Union types such as `Category` are derived from `as const` arrays, so the list we loop over in the UI and the type can never drift apart.
 
-**Request status:** `RequestState<T>` in `src/types/request.ts` is a discriminated union (`idle | loading | success | error`). Separate booleans (`isLoading`, `isError`, `data`) allow 8 combinations, most of them impossible (loading *and* error). The union allows exactly the 4 real ones, and TypeScript only lets us read `data` after checking `status === 'success'`.
+**Request status:** `RequestState<T>` in `src/types/request.ts` is a discriminated union (`idle | loading | success | error`). Separate booleans (`isLoading`, `isError`, `data`) allow 8 combinations, most of them impossible (loading _and_ error). The union allows exactly the 4 real ones, and TypeScript only lets us read `data` after checking `status === 'success'`.
 
 **Considered:** TypeScript 7 (the new native compiler) was released, but `typescript-eslint` only supports up to 6.0, so we stay on 6. Looser settings (`strict: false`) would make migration faster but hide the bugs strict mode exists to catch.
 
@@ -39,6 +40,7 @@ Each task records what we chose, what else we considered, and why.
 **Triggering errors:** a Dev panel writes "scenarios" to `localStorage`, and handlers check them on every request. We considered `?mock=500` URL flags, but they get lost when navigating between pages, and a panel is easier to demo.
 
 **Considered:**
+
 - **json-server:** a real HTTP server, but it needs a second process, and custom logic (409, idempotency, auth) is awkward.
 - **Fake functions** (like the Week 1 `mockApi.js`): simplest, but they skip HTTP entirely. Status codes, headers and `fetch` errors would never be exercised, so the data layer would be untested.
 
@@ -51,15 +53,38 @@ Each task records what we chose, what else we considered, and why.
 **Choice:** `src/api/client.ts` exports `apiRequest()`, the only function that calls `fetch`. Small per-resource modules (`products.ts`, `auth.ts`, `orders.ts`) wrap it with typed functions such as `fetchProduct(id, signal)`. An ESLint `no-restricted-globals` rule fails the build if `fetch` appears anywhere else, so the rule doesn't depend on people remembering it.
 
 **What the client handles once, for everyone:**
+
 - The base URL
 - JSON encoding and decoding
 - The `Authorization` header
 - `AbortSignal` support, so callers can cancel requests
-- Converting *every* failure (HTTP error, network failure, non-JSON body) into a single `ApiRequestError` with `status`, `code` and `details`
+- Converting _every_ failure (HTTP error, network failure, non-JSON body) into a single `ApiRequestError` with `status`, `code` and `details`
 
 **Avoiding a circular import:** the client needs the token from Redux, and Redux will call the client, so importing in both directions would create a loop. Instead the store "plugs in" `getToken` and `onUnauthorized` callbacks at startup with `configureApiAuth()`. This is dependency injection in its simplest form.
 
 **Considered:**
+
 - **axios:** interceptors would do the same job, but it's another dependency, and `fetch` plus a 90-line wrapper covers everything we need.
 - **RTK Query / TanStack Query as the data layer:** discussed in D3-5.
 - **Zod** for validating responses at runtime: the right choice for a real third-party API. Here we own both sides of the contract, so we trust the types and skip the extra dependency.
+
+---
+
+## D1-1: Project setup
+
+**Choice:**
+
+- **Prettier** owns formatting: single quotes, 120-column lines, LF line endings. `eslint-config-prettier` switches off ESLint's style rules so the two tools never disagree.
+- **ESLint** owns correctness: TypeScript rules and React Hooks rules.
+- **`.editorconfig`** gives every editor the same indentation and line endings, which matters on Windows.
+- **`.nvmrc` plus `engines`** pin Node 22.12+, the minimum for Vite 8 and Vitest 5.
+- **Folders by layer, then by feature:** `api/`, `mocks/`, `types/` and `store/` are shared layers; `features/<name>/` keeps a feature's page and components together.
+- **`npm run check`** runs everything CI will run, so you can catch failures locally first.
+
+**Considered:**
+
+- **Biome:** one fast tool for both lint and format, but it doesn't yet support the React Hooks rules we rely on.
+- **Husky pre-commit hooks:** useful, but extra setup for a one-week project; CI (D4-6) enforces the same checks.
+- **Grouping only by file type** (all components in one folder): simpler at first, but features get scattered across folders as the app grows.
+
+**Verified:** a fresh copy ran `npm ci`, then `npm run check`, then `npm run build` in about 15 seconds (most of the 5-minute budget is downloading packages).
