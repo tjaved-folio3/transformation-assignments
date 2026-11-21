@@ -1,4 +1,12 @@
-# React + Vite
+# The Bug Bazaar
+
+A small store for developer gear (rubber ducks, mechanical keyboards, coffee, stickers), built with React and TypeScript.
+
+> The full setup guide (scripts, environment variables, folder structure) is added in task D1-1.
+
+---
+
+## Original Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

@@ -1,18 +1,13 @@
-// import { useState } from 'react'
-// import heroImg from './assets/hero.png'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from './assets/vite.svg'
 import './App.css'
 
+// Temporary placeholder. Day 1 (D1-3) converts this file to TypeScript,
+// and Day 2 (D2-1) replaces it with the router and real pages.
 function App() {
-  const firstName = 'David';
-  const secondName = "Rob";
-
   return (
-    <>
-      {console.log("Customer is:", `${firstName + secondName}`)}
-      <h1>{firstName + secondName}</h1>
-    </>
+    <main>
+      <h1>The Bug Bazaar</h1>
+      <p>Developer gear for people who ship: rubber ducks, keyboards, and coffee.</p>
+    </main>
   )
 }
 
