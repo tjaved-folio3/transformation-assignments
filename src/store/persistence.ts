@@ -1,4 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
+import { queryCache } from '../api/cache.ts';
 import type { User } from '../types/api.ts';
 import { initialAuthState, loggedIn, loggedOut, sessionExpired, userLoaded, type AuthState } from './authSlice.ts';
 import {
@@ -97,6 +98,8 @@ persistenceMiddleware.startListening({
 persistenceMiddleware.startListening({
   matcher: isAnyOf(loggedIn, userLoaded, loggedOut, sessionExpired),
   effect: (_action, api) => {
+    // A different (or no) user: cached per-user data like "me" must not leak across sessions.
+    queryCache.invalidate('me');
     const { token, user } = api.getState().auth;
     if (token) writeJson(AUTH_STORAGE_KEY, { token, user });
     else localStorage.removeItem(AUTH_STORAGE_KEY);

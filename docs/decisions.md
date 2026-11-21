@@ -297,3 +297,29 @@ Components switch on `kind` and never render `error.message` from the server.
 
 - **A global toast for every error:** consistent, but it loses context (which field? which item?).
 - **Showing `error.message`:** fast to write, but it leaks internals ("Simulated server failure", SQL errors) and is unfriendly. A unit test asserts the raw message never appears in the mapped result.
+
+---
+
+## D3-5: Caching
+
+**Choice:** a small in-memory cache (`src/api/cache.ts`), used by `useApiQuery`, keyed by the same strings the hook already uses (`products?category=coffee`, `product:p-0042`, `me`).
+
+- **Fresh (under 30 s):** returned instantly with **no request**. Going Back from a product to the list showed 0 requests and no skeleton.
+- **Stale (over 30 s):** shown instantly, then refreshed in the background (_stale-while-revalidate_). If that refresh fails, we keep showing the stale copy.
+- **Try again:** invalidates the key first, so a retry really goes to the server.
+- **Invalidation after mutations:**
+  - Placing an order calls `queryCache.invalidate('products', 'product:')`, so stock is re-fetched on the next view.
+  - Logging in or out clears `me`, so one user's data never shows for another.
+- **Bounded:** at most 200 entries; the oldest is dropped first.
+
+**When is stale data acceptable?**
+
+- **Acceptable:** product names, images, ratings and prices for a short time. They rarely change, and the server is the final authority at checkout anyway (it recalculates and re-checks stock, returning a 409 if it's gone).
+- **Stock is the risky field:** a cached "3 left" might really be 0. That's acceptable _while browsing_ because checkout catches it, and D4-4's live stock updates shrink the window.
+- **Not acceptable:** anything about money or permissions at the moment of a decision (the order total charged, whether you're logged in). Those always come from the server, and orders are never cached; the order page polls.
+
+**Considered:**
+
+- **RTK Query** (already have Redux Toolkit): automatic caching, deduping and tag-based invalidation (`invalidatesTags: ['Product']`). It's the best fit for a production app. We built the small version by hand to understand what it does, and the hook interface means components wouldn't change if we swapped it in.
+- **TanStack Query:** the same idea, without Redux.
+- **HTTP caching** (`Cache-Control`): the browser does it for free, but we have no real server to send headers, and invalidating after an order isn't possible from the client.

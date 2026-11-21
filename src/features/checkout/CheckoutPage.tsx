@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
+import { queryCache } from '../../api/cache.ts';
 import { toUserError } from '../../api/errors.ts';
 import { createOrder } from '../../api/orders.ts';
 import { fetchProduct } from '../../api/products.ts';
@@ -57,6 +58,9 @@ export function CheckoutPage() {
         idempotencyKey,
       );
       clearCheckoutKey();
+      // Stock just changed on the server: drop cached product data so the
+      // next list/details view refetches fresh stock.
+      queryCache.invalidate('products', 'product:');
       // Leave the page FIRST (flushSync commits the navigation immediately),
       // then empty the cart. In the other order, the cart update re-renders
       // this page with an empty cart and its guard redirects to /cart instead.
