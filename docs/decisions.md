@@ -436,3 +436,21 @@ Results: **Lighthouse 100 on home, cart and login**. Details in [`docs/accessibi
 
 - **Server-Sent Events (SSE):** simpler, one-way (server → client), works over plain HTTP, and the browser's `EventSource` reconnects automatically. It's actually a great fit for stock updates. But we need to tell the server _which_ products to watch, which SSE can't do on the same connection.
 - **Polling:** simplest (re-fetch every few seconds), but it's wasteful (most responses say "nothing changed") and updates are only as fresh as the interval.
+
+---
+
+## D4-3: Virtualization and memoization
+
+**Choice:**
+
+- **`@tanstack/react-virtual`** (window virtualizer) for the opt-in "Show all results" view: 5,000 products, about 30 cards in the DOM.
+- **`React.memo(ProductCard)`**, so a live stock push re-renders one card instead of all of them.
+- **Removed `useMemo`** from `useProductFilters`, and **skipped `useCallback`**, because they had no measurable benefit.
+
+The numbers and the reasoning for each are in [`docs/performance.md`](performance.md).
+
+**Considered:**
+
+- **`react-window`:** works well, but its grid component needs a fixed-height scroll container. TanStack Virtual can use the page's own scrollbar (`useWindowVirtualizer`), which keeps the header and footer behaving normally.
+- **Infinite scroll** (load more pages as you scroll): fewer bytes up front, but it still ends with thousands of DOM nodes unless you also virtualize.
+- **CSS `content-visibility: auto`:** skips _painting_ off-screen cards, but React still creates all 5,000 components.

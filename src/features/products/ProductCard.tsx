@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router';
 import type { Product } from '../../types/api.ts';
 import { formatPrice } from '../../utils/format.ts';
@@ -12,10 +13,16 @@ type ProductCardProps = {
 
 /**
  * Presentational component: it only receives a product and renders it.
+ *
+ * D4-3: wrapped in React.memo, so it only re-renders when ITS props change.
+ * When a live stock update arrives, the grid re-renders, but 23 of 24 cards
+ * (or ~25 of 25 visible in the virtual grid) get identical props and skip
+ * rendering. `product` keeps the same object reference and `stock` is a number,
+ * so the shallow comparison memo does is enough.
  * The whole card is one real <a> link, so it is reachable with Tab and opens
  * with Enter. No onClick on a <div>, which keyboards can't use.
  */
-export function ProductCard({ product, stock }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, stock }: ProductCardProps) {
   return (
     <Link to={`/products/${product.id}`} className="product-card__link">
       {/* alt="" because the product name right below says the same thing;
@@ -38,4 +45,4 @@ export function ProductCard({ product, stock }: ProductCardProps) {
       </div>
     </Link>
   );
-}
+});

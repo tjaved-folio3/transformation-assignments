@@ -1008,3 +1008,55 @@ img {
 .live-status--reconnecting::before {
   background: #ef9f27;
 }
+
+.view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  margin: -0.5rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.view-toggle a {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.view-toggle a[aria-current='page'] {
+  background: var(--color-text);
+  color: #fff;
+}
+
+/* ---------- Virtualized "show all" grid (D4-3) ---------- */
+
+.virtual-grid {
+  position: relative;
+  width: 100%;
+}
+
+.virtual-grid__row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: grid;
+  gap: 16px;
+}
+
+/* Fixed card height so every row is exactly ROW_HEIGHT (290 + 16 gap) tall. */
+.virtual-grid .product-card {
+  height: 290px;
+}
+
+.virtual-grid .product-card__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.live-status {
+  margin-bottom: 0.75rem;
+}

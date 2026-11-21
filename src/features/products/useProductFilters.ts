@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { filtersToSearchParams, parseFilters, type ProductFilters } from './productFilters.ts';
 
@@ -13,7 +12,9 @@ type UpdateOptions = {
  */
 export function useProductFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  // No useMemo here on purpose (D4-3): parsing five URL params takes microseconds,
+  // and nothing downstream depends on the object's identity. See docs/performance.md.
+  const filters = parseFilters(searchParams);
 
   function updateFilters(changes: Partial<ProductFilters>, { replace = false }: UpdateOptions = {}) {
     // Changing any filter jumps back to page 1: page 7 of the old results

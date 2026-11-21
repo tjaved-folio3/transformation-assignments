@@ -1,3 +1,4 @@
+import { Profiler } from 'react';
 import { Link } from 'react-router';
 import { fetchProducts, toProductSearchParams } from '../../api/products.ts';
 import { BackToTop } from '../../components/BackToTop.tsx';
@@ -5,14 +6,14 @@ import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { EmptyState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
-import { useLiveStock } from '../../hooks/useLiveStock.ts';
-import { LiveStatus } from '../../components/LiveStatus.tsx';
+import { recordRender } from '../../monitoring/perf.ts';
 import { formatCount } from '../../utils/format.ts';
 import { FiltersBar } from './FiltersBar.tsx';
 import { Pagination } from './Pagination.tsx';
 import { PAGE_SIZE, filtersToQuery, filtersToSearchParams, hasActiveFilters } from './productFilters.ts';
 import { ProductGrid } from './ProductGrid.tsx';
 import { useProductFilters } from './useProductFilters.ts';
+import { VirtualProductGrid } from './VirtualProductGrid.tsx';
 
 export function ProductListPage() {
   const { filters, updateFilters, clearFilters } = useProductFilters();
@@ -21,9 +22,6 @@ export function ProductListPage() {
   const key = `products?${toProductSearchParams(query).toString()}`;
   const { state, refetch } = useApiQuery(key, (signal) => fetchProducts(query, signal));
   useDocumentTitle(filters.q ? `Search: ${filters.q}` : 'Shop developer gear');
-  // Subscribe to live stock for exactly the products on screen.
-  const visibleIds = state.status === 'success' ? state.data.items.map((product) => product.id) : [];
-  const { stockById, status: liveStatus } = useLiveStock(visibleIds);
 
   function renderResults() {
     switch (state.status) {
@@ -63,8 +61,11 @@ export function ProductListPage() {
         }
         return (
           <>
-            <ProductGrid products={items} stockById={stockById} />
-            <Pagination filters={filters} totalPages={totalPages} />
+            {/* <Profiler> measures render time for docs/performance.md (dev only). */}
+            <Profiler id="ProductGrid" onRender={recordRender}>
+              {filters.view === 'all' ? <VirtualProductGrid products={items} /> : <ProductGrid products={items} />}
+            </Profiler>
+            {filters.view === 'pages' && <Pagination filters={filters} totalPages={totalPages} />}
           </>
         );
       }
@@ -75,7 +76,6 @@ export function ProductListPage() {
     <>
       <div className="page-header">
         <h1>Shop developer gear</h1>
-        <LiveStatus status={liveStatus} />
         {/* A live region must exist BEFORE its text changes, so it's always rendered.
             Screen readers then announce "123 products" after each filter change. */}
         <p className="result-count" aria-live="polite">
@@ -89,6 +89,20 @@ export function ProductListPage() {
         onClear={clearFilters}
         canClear={hasActiveFilters(filters)}
       />
+      <nav className="view-toggle" aria-label="Results view">
+        <Link
+          to={`?${filtersToSearchParams({ ...filters, view: 'pages', page: 1 }).toString()}`}
+          aria-current={filters.view === 'pages' ? 'page' : undefined}
+        >
+          24 per page
+        </Link>
+        <Link
+          to={`?${filtersToSearchParams({ ...filters, view: 'all' }).toString()}`}
+          aria-current={filters.view === 'all' ? 'page' : undefined}
+        >
+          Show all results
+        </Link>
+      </nav>
       {renderResults()}
       <BackToTop />
     </>

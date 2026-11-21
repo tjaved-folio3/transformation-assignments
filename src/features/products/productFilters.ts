@@ -13,6 +13,11 @@ import { CATEGORIES, SORT_OPTIONS, type Category, type ProductQuery, type SortOp
  */
 
 export const PAGE_SIZE = 24;
+/** "Show all results" loads every match (up to all 5,000) into one virtualized grid (D4-3). */
+export const ALL_RESULTS_SIZE = 5000;
+
+export const VIEW_MODES = ['pages', 'all'] as const;
+export type ViewMode = (typeof VIEW_MODES)[number];
 
 export type ProductFilters = {
   q: string;
@@ -20,6 +25,7 @@ export type ProductFilters = {
   inStock: boolean;
   sort: SortOption;
   page: number;
+  view: ViewMode;
 };
 
 export const DEFAULT_FILTERS: ProductFilters = {
@@ -28,6 +34,7 @@ export const DEFAULT_FILTERS: ProductFilters = {
   inStock: false,
   sort: 'relevance',
   page: 1,
+  view: 'pages',
 };
 
 function parseCategory(value: string | null): Category | null {
@@ -50,6 +57,7 @@ export function parseFilters(params: URLSearchParams): ProductFilters {
     inStock: params.get('inStock') === 'true',
     sort: parseSort(params.get('sort')),
     page: parsePage(params.get('page')),
+    view: params.get('view') === 'all' ? 'all' : 'pages',
   };
 }
 
@@ -60,7 +68,8 @@ export function filtersToSearchParams(filters: ProductFilters): URLSearchParams 
   if (filters.category) params.set('category', filters.category);
   if (filters.inStock) params.set('inStock', 'true');
   if (filters.sort !== 'relevance') params.set('sort', filters.sort);
-  if (filters.page > 1) params.set('page', String(filters.page));
+  if (filters.page > 1 && filters.view === 'pages') params.set('page', String(filters.page));
+  if (filters.view === 'all') params.set('view', 'all');
   return params;
 }
 
@@ -71,8 +80,8 @@ export function filtersToQuery(filters: ProductFilters): ProductQuery {
     category: filters.category ?? undefined,
     inStock: filters.inStock || undefined,
     sort: filters.sort,
-    page: filters.page,
-    pageSize: PAGE_SIZE,
+    page: filters.view === 'all' ? 1 : filters.page,
+    pageSize: filters.view === 'all' ? ALL_RESULTS_SIZE : PAGE_SIZE,
   };
 }
 
