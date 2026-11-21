@@ -114,3 +114,32 @@ Products live in a cache behind `useApiQuery`, **not** in Redux, even though Red
 
 - **The cost:** two state systems to understand instead of one, and our hand-rolled cache is simpler than a library (no request deduping across components, no garbage collection by time).
 - **How it could change:** pages only talk to `useApiQuery`, so replacing its internals with RTK Query (which keeps server state in Redux, _done properly_) wouldn't touch a single page.
+
+## Design patterns used
+
+### 1. Container and presentational components
+
+- **Where:** `ProductListPage` (container: reads URL filters, fetches, decides which state to show) → `ProductGrid` → `ProductCard` / `StockBadge` (presentational: props in, markup out). The same split exists between `ProductDetailsPage` (container) and `AddToCart` / `StockBadge`.
+- **Why:** presentational components are easy to reuse (`ProductCard` is used by both the paged and the virtual grid) and easy to optimize (`memo` works because the card has only plain props). Data fetching and routing logic stay in one place per page.
+
+### 2. Custom hooks (logic reuse)
+
+- **Where:** `useApiQuery`, `useLiveStock`, `useDebouncedValue`, `useScrolledPast`, `useLocalStorage`, `useProductFilters`, `useOrderStatus`, `useDocumentTitle`.
+- **Why:** they share _behavior_ (abort on change, timers, listeners, persistence) without sharing markup, and each owns its cleanup. `useScrolledPast` removed two copies of the same scroll listener (Back to Top and the header shadow). `useApiQuery` removed duplicated loading/error/abort code from three pages (list, details, account).
+
+### 3. Adapter / gateway (the data layer)
+
+- **Where:** `src/api/`. `apiRequest()` adapts `fetch`'s awkward behavior into one clean interface:
+  - `fetch` only rejects on network errors, so we check `response.ok` ourselves.
+  - Error responses come in different shapes, and we normalize them into one `ApiRequestError`.
+  - Bodies can be empty or non-JSON.
+
+  `toUserError()` then adapts _that_ into UI language.
+
+- **Why:** the rest of the app depends on our interface, not on `fetch` or the backend's quirks. Switching to axios, adding retries, or pointing at a real backend changes files in `src/api/` only.
+
+**Also used:**
+
+- **Observer:** Redux subscriptions, the WebSocket, and the listener middleware.
+- **Dependency injection:** `configureApiAuth({ getToken, onUnauthorized })`.
+- **Discriminated unions as a state machine:** `RequestState`, `UserError`.
