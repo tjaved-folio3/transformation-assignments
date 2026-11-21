@@ -107,3 +107,22 @@ Each task records what we chose, what else we considered, and why.
 - **Floats for money:** rejected, because `0.1 + 0.2 = 0.30000000000000004`.
 - **`toFixed(2)` for prices:** rejected, because it doesn't add the `$` sign or thousands separators.
 - **`onClick` on a `<div>` card:** rejected, because keyboards and screen readers can't use it.
+
+---
+
+## D2-2: Filters live in the URL
+
+**Choice:** the URL query string (`?q=&category=&inStock=&sort=&page=`) is the **only** place filter state lives. `useProductFilters()` reads it with React Router's `useSearchParams` and writes changes back. Pure functions in `productFilters.ts` convert URL ⇄ typed object and replace invalid values (`?page=-3`, `?category=hats`) with defaults.
+
+**History rules:**
+
+- **Typing in search** uses `replace: true`, so "d-u-c-k" doesn't create 4 Back-button steps.
+- **Choosing a category, sort, checkbox or page** pushes a new entry, so Back undoes it.
+- **Changing any filter** resets to page 1.
+- **Pagination uses real links**, so each page can be opened in a new tab or shared.
+
+**Considered:**
+
+- **`useState` in the page:** lost on refresh, can't be shared, and Back leaves the page entirely.
+- **Redux:** same problems. Global state is not the same as shareable state.
+- **localStorage:** survives refresh, but a copied link wouldn't reproduce the view.
