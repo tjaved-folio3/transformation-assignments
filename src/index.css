@@ -666,3 +666,7 @@ img {
   z-index: 40;
   box-shadow: var(--shadow);
 }
+
+.site-header--scrolled {
+  box-shadow: 0 2px 12px rgb(0 0 0 / 8%);
+}

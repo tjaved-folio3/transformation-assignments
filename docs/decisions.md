@@ -154,3 +154,28 @@ Each task records what we chose, what else we considered, and why.
 **The bug this fixed:** before this task, a slow old response arriving after a fast new one replaced the new result. The page then showed "loading" forever (or, without our key check, the wrong product). Reproduce it: choose the "Random" network speed and click "Next product →" quickly 8 times; the final page always matches the URL. `useApiQuery.test.ts` proves it by resolving responses in reverse order.
 
 **Considered:** an `ignore` flag (`let ignore = false; return () => { ignore = true }`). It prevents the stale update, but the request keeps running and using bandwidth. `AbortController` actually cancels it, and we still check `signal.aborted` before updating state.
+
+---
+
+## D2-5: Custom hooks
+
+**Choice:** reusable, typed hooks in `src/hooks/`, each replacing logic that was (or would be) copied between components:
+
+| Hook                           | What it does                                                       | Used by                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `useApiQuery(key, fetcher)`    | Loading/error/success state, abort on change/unmount, retry        | Product list, product details (Day 3: account, order pages)                               |
+| `useDebouncedValue(value, ms)` | Delays a fast-changing value                                       | Search box: 1 request for "keyboard" instead of 8                                         |
+| `useScrolledPast(px)`          | Scroll listener with cleanup                                       | Back to Top button **and** the header shadow (previously two copies of the same listener) |
+| `useLocalStorage(key, parse)`  | `useState` that persists, validates stored data, syncs across tabs | Mock API controls panel (replaced hand-written read/parse/save code)                      |
+| `useProductFilters()`          | Typed filters read from and written to the URL                     | Product list page                                                                         |
+
+**Design rules:**
+
+- Hooks hide _how_ (listeners, timers, AbortControllers) and expose _what_ (a value and maybe a setter).
+- Each hook owns its own cleanup.
+- `useLocalStorage` takes a `parse` function rather than trusting `JSON.parse`, because storage can hold old or corrupted data.
+
+**Considered:**
+
+- **`useSyncExternalStore` for scroll position:** React's official way to subscribe to browser APIs, and a good fit. We kept `useEffect` because it shows the cleanup pattern more clearly.
+- **A debounce library** (`lodash.debounce`): unnecessary for 8 lines.

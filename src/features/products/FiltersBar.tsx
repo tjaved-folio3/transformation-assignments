@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts';
 import { CATEGORIES, SORT_OPTIONS, type Category, type SortOption } from '../../types/api.ts';
 import type { ProductFilters } from './productFilters.ts';
+
+/** How long typing must pause before we search. */
+const SEARCH_DEBOUNCE_MS = 300;
 
 const SORT_LABELS: Record<SortOption, string> = {
   relevance: 'Featured',
@@ -25,15 +29,28 @@ type FiltersBarProps = {
 };
 
 export function FiltersBar({ filters, onChange, onClear, canClear }: FiltersBarProps) {
-  // The search box keeps its own text so typing feels instant.
+  // The search box keeps its own text so typing feels instant…
   const [text, setText] = useState(filters.q);
+  // …but the URL (and therefore the API request) only updates once typing
+  // pauses for 300 ms: one request for "keyboard" instead of eight.
+  const debouncedText = useDebouncedValue(text, SEARCH_DEBOUNCE_MS);
+
+  // useEffectEvent reads the latest filters/onChange without re-running the effect.
+  const pushSearch = useEffectEvent((value: string) => {
+    if (value !== filters.q) onChange({ q: value }, { replace: true });
+  });
+  useEffect(() => {
+    pushSearch(debouncedText);
+  }, [debouncedText]);
+
   // When the URL changes from OUTSIDE (Back button, "Clear filters"), copy the
-  // new value into the box. This is React's "adjust state while rendering"
-  // pattern: cheaper and safer than syncing with a useEffect.
+  // new value into the box ("adjust state while rendering"). If the URL simply
+  // caught up with what we debounced, leave the box alone: the user may have
+  // kept typing.
   const [prevQ, setPrevQ] = useState(filters.q);
   if (filters.q !== prevQ) {
     setPrevQ(filters.q);
-    setText(filters.q);
+    if (filters.q !== debouncedText) setText(filters.q);
   }
 
   return (
@@ -48,11 +65,7 @@ export function FiltersBar({ filters, onChange, onClear, canClear }: FiltersBarP
           type="search"
           placeholder="Try “duck” or “keyboard”"
           value={text}
-          onChange={(event) => {
-            setText(event.target.value);
-            // replace: typing "duck" shouldn't create 4 history entries (d, du, duc, duck).
-            onChange({ q: event.target.value }, { replace: true });
-          }}
+          onChange={(event) => setText(event.target.value)}
         />
       </div>
 

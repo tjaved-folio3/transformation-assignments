@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage.ts';
 import { db } from './db.ts';
 import {
   LATENCY_MODES,
   MOCK_SCENARIOS,
   MOCK_SETTINGS_KEY,
-  readMockSettings,
+  parseMockSettings,
   type LatencyMode,
   type MockScenario,
   type MockSettings,
@@ -19,13 +20,9 @@ const latencyKeys = Object.keys(LATENCY_MODES) as LatencyMode[];
  * handlers read them on every request.
  */
 export function DevPanel() {
-  const [settings, setSettings] = useState<MockSettings>(readMockSettings);
+  // Saved to localStorage, where the mock handlers read it on every request.
+  const [settings, update] = useLocalStorage<MockSettings>(MOCK_SETTINGS_KEY, parseMockSettings);
   const [note, setNote] = useState('');
-
-  function update(next: MockSettings) {
-    setSettings(next);
-    localStorage.setItem(MOCK_SETTINGS_KEY, JSON.stringify(next));
-  }
 
   function toggleScenario(scenario: MockScenario) {
     const scenarios = settings.scenarios.includes(scenario)

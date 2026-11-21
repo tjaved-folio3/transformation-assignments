@@ -1,16 +1,20 @@
 import { Link, NavLink, Outlet } from 'react-router';
+import { useScrolledPast } from '../hooks/useScrolledPast.ts';
 
 /**
  * The page frame shared by every route: header, main content, footer.
  * <Outlet /> is where React Router renders the matching child route.
  */
 export function Layout() {
+  // Same hook as BackToTop: adds a shadow under the sticky header once you scroll.
+  const scrolled = useScrolledPast(8);
+
   return (
     <>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="site-header">
+      <header className={scrolled ? 'site-header site-header--scrolled' : 'site-header'}>
         <div className="site-header__inner">
           <Link to="/" className="site-logo">
             <span className="site-logo__mark" aria-hidden="true">
