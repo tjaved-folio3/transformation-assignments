@@ -2,6 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
+import { installGlobalErrorHandlers } from './monitoring/logger.ts';
+
+installGlobalErrorHandlers();
 
 const mocksEnabled = import.meta.env.VITE_ENABLE_MOCKS !== 'false';
 

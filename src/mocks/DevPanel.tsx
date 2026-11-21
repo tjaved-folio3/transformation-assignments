@@ -71,6 +71,7 @@ export function DevPanel() {
         >
           Expire my session (401)
         </button>
+        <a href="/debug/crash">Crash a page (error boundary)</a>
         <button
           type="button"
           onClick={() => {

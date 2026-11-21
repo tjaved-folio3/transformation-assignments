@@ -323,3 +323,20 @@ Components switch on `kind` and never render `error.message` from the server.
 - **RTK Query** (already have Redux Toolkit): automatic caching, deduping and tag-based invalidation (`invalidatesTags: ['Product']`). It's the best fit for a production app. We built the small version by hand to understand what it does, and the hook interface means components wouldn't change if we swapped it in.
 - **TanStack Query:** the same idea, without Redux.
 - **HTTP caching** (`Cache-Control`): the browser does it for free, but we have no real server to send headers, and invalidating after an order isn't possible from the client.
+
+---
+
+## D4-7: Catching unexpected errors
+
+**Choice:** error boundaries at two levels plus global listeners, all reporting to one `logError()` function. See [`docs/monitoring.md`](monitoring.md).
+
+- **Router level:** an `errorElement` on the layout route catches page crashes.
+- **Root level:** `react-error-boundary` around everything else.
+- **`window` `error` / `unhandledrejection`:** for errors that React boundaries can't catch (event handlers, async code).
+
+**Why a library for the root boundary:** React only supports error boundaries as _class_ components. `react-error-boundary` wraps that one class so our code stays function-components-only, in line with our code style rule.
+
+**Considered:**
+
+- **Sentry SDK:** the real-world choice, but it needs an account and DSN. `logError` is the single seam where it would plug in.
+- **One boundary only:** a router-level crash would then lose the header too. Two levels keep the layout when only a page fails.
