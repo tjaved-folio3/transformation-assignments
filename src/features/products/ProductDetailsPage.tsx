@@ -6,6 +6,7 @@ import { NotFoundPage } from '../../components/NotFoundPage.tsx';
 import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { AddToCart } from '../cart/AddToCart.tsx';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
@@ -30,6 +31,7 @@ export function ProductDetailsPage() {
   // The signal lets useApiQuery cancel this request when `id` changes or the page closes.
   const { state, refetch } = useApiQuery(`product:${id}`, (signal) => fetchProduct(id, signal));
   const { previous, next } = neighbourIds(id);
+  useDocumentTitle(state.status === 'success' ? state.data.name : 'Product');
 
   if (state.status === 'error' && toUserError(state.error).kind === 'not-found') {
     return <NotFoundPage title="Product not found" message="This product doesn't exist or was removed." />;

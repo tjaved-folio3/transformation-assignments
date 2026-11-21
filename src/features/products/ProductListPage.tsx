@@ -4,6 +4,7 @@ import { BackToTop } from '../../components/BackToTop.tsx';
 import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { EmptyState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { formatCount } from '../../utils/format.ts';
 import { FiltersBar } from './FiltersBar.tsx';
 import { Pagination } from './Pagination.tsx';
@@ -17,6 +18,7 @@ export function ProductListPage() {
   // The query string is the identity key: same filters → same key.
   const key = `products?${toProductSearchParams(query).toString()}`;
   const { state, refetch } = useApiQuery(key, (signal) => fetchProducts(query, signal));
+  useDocumentTitle(filters.q ? `Search: ${filters.q}` : 'Shop developer gear');
 
   function renderResults() {
     switch (state.status) {
@@ -68,11 +70,12 @@ export function ProductListPage() {
     <>
       <div className="page-header">
         <h1>Shop developer gear</h1>
-        {state.status === 'success' && (
-          <p className="result-count">
-            {formatCount(state.data.total)} {state.data.total === 1 ? 'product' : 'products'}
-          </p>
-        )}
+        {/* A live region must exist BEFORE its text changes, so it's always rendered.
+            Screen readers then announce "123 products" after each filter change. */}
+        <p className="result-count" aria-live="polite">
+          {state.status === 'success' &&
+            `${formatCount(state.data.total)} ${state.data.total === 1 ? 'product' : 'products'}`}
+        </p>
       </div>
       <FiltersBar
         filters={filters}

@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router';
 import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { LoadingState } from '../../components/StatusViews.tsx';
 import { ORDER_STATUSES, type OrderStatus } from '../../types/api.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { useOrderStatus } from './useOrderStatus.ts';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -13,6 +14,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 export function OrderPage() {
   const { id = '' } = useParams();
   const state = useOrderStatus(id);
+  useDocumentTitle('Your order');
 
   if (state.status === 'error') {
     return <ApiErrorView error={state.error} what="your order" onRetry={() => window.location.reload()} />;

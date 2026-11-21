@@ -3,6 +3,7 @@ import { fetchMe } from '../../api/auth.ts';
 import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { loggedOut } from '../../store/authSlice.ts';
 import { useAppDispatch } from '../../store/hooks.ts';
 
@@ -11,6 +12,7 @@ export function AccountPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { state, refetch } = useApiQuery('me', (signal) => fetchMe(signal));
+  useDocumentTitle('Your account');
 
   return (
     <section>

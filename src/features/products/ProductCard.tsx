@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
         loading="lazy"
       />
       <div className="product-card__body">
-        <h3 className="product-card__name">{product.name}</h3>
+        <h2 className="product-card__name">{product.name}</h2>
         <span className="rating">★ {product.rating.toFixed(1)}</span>
         <div className="product-card__meta">
           <span className="price">{formatPrice(product.price)}</span>

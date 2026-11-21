@@ -5,6 +5,7 @@ import { toUserError } from '../../api/errors.ts';
 import { loggedIn } from '../../store/authSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectIsAuthenticated } from '../../store/selectors.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { readRedirectTarget } from './redirect.ts';
 
 type FieldErrors = { email?: string; password?: string };
@@ -32,6 +33,9 @@ export function LoginPage() {
   // A ref updates instantly (state updates wait for the next render), so a
   // fast double-click or double Enter can't sneak a second request through.
   const submittingRef = useRef(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  useDocumentTitle('Log in');
 
   if (isAuthenticated) return <Navigate to={redirectTo} replace />;
 
@@ -42,7 +46,12 @@ export function LoginPage() {
     const errors = validate(email, password);
     setFieldErrors(errors);
     setFormError('');
-    if (errors.email || errors.password) return;
+    if (errors.email || errors.password) {
+      // Move focus to the first problem: the screen reader reads its label AND
+      // its error (linked with aria-describedby), so the error is announced.
+      (errors.email ? emailRef : passwordRef).current?.focus();
+      return;
+    }
 
     submittingRef.current = true;
     setIsSubmitting(true);
@@ -54,6 +63,7 @@ export function LoginPage() {
       const userError = toUserError(error);
       if (userError.kind === 'validation') {
         setFieldErrors({ email: userError.fieldErrors.email, password: userError.fieldErrors.password });
+        (userError.fieldErrors.email ? emailRef : passwordRef).current?.focus();
       } else if (userError.kind === 'unauthorized') {
         // On the login page a 401 means wrong credentials, not an expired session.
         setFormError('That email and password combination is incorrect.');
@@ -78,13 +88,15 @@ export function LoginPage() {
         Demo account: <code>dev@bugbazaar.test</code> / <code>password123</code>
       </p>
 
-      <form noValidate onSubmit={handleSubmit} className="form">
+      {/* noValidate: we show our own accessible error messages instead of the browser's bubbles. */}
+      <form noValidate onSubmit={handleSubmit} className="form" aria-label="Log in">
         <div className="field">
           <label className="field__label" htmlFor="login-email">
             Email
           </label>
           <input
             id="login-email"
+            ref={emailRef}
             className="input"
             type="email"
             autoComplete="email"
@@ -106,6 +118,7 @@ export function LoginPage() {
           </label>
           <input
             id="login-password"
+            ref={passwordRef}
             className="input"
             type="password"
             autoComplete="current-password"

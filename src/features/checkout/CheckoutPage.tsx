@@ -7,6 +7,7 @@ import { fetchProduct } from '../../api/products.ts';
 import { cartCleared, stockUpdated } from '../../store/cartSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectCartItems, selectCartTotal, selectCurrentUser } from '../../store/selectors.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { formatPrice } from '../../utils/format.ts';
 import { cartSignature, clearCheckoutKey, getCheckoutKey } from './idempotency.ts';
 
@@ -21,6 +22,7 @@ export function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<CheckoutError | null>(null);
   const submittingRef = useRef(false);
+  useDocumentTitle('Checkout');
 
   if (items.length === 0 && !isSubmitting) return <Navigate to="/cart" replace />;
   const hasUnavailable = items.some((item) => item.stock === 0);

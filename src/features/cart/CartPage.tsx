@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { EmptyState } from '../../components/StatusViews.tsx';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { itemRemoved, quantityChanged } from '../../store/cartSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectCartCount, selectCartItems, selectCartTotal } from '../../store/selectors.ts';
@@ -12,6 +13,7 @@ export function CartPage() {
   const count = useAppSelector(selectCartCount);
   const total = useAppSelector(selectCartTotal);
   const hasUnavailable = items.some((item) => item.stock === 0);
+  useDocumentTitle('Your cart');
 
   if (items.length === 0) {
     return (

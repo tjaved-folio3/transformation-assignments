@@ -389,3 +389,22 @@ Verified locally by serving the sub-path build: routes, images, deep links and t
 
 - **Jest:** needs separate TypeScript/ESM configuration; Vitest shares Vite's.
 - **Playwright end-to-end tests:** the best confidence for the full flow, but slower. Unit and integration tests with MSW give most of the value here, and I used Playwright manually for browser checks.
+
+---
+
+## D4-1: Accessibility
+
+**Choice:** semantic HTML first (real links, buttons, labels, landmarks), then ARIA only where HTML has no equivalent: live regions, `aria-invalid` / `aria-describedby`, and `aria-current`. Added in this task:
+
+- Focus management on route changes.
+- A per-page `document.title`.
+- An always-mounted live region for the result count.
+- Focus moving to the first invalid field.
+- Card titles changed from `h3` to `h2` (fixing Lighthouse's heading-order audit).
+
+Results: **Lighthouse 100 on home, cart and login**. Details in [`docs/accessibility.md`](accessibility.md).
+
+**Considered:**
+
+- **`eslint-plugin-jsx-a11y`:** it catches many issues at lint time, but doesn't support ESLint 10 yet. Lighthouse plus manual keyboard testing covered it instead.
+- **A focus-trapping modal for "Added to cart":** an inline `role="status"` message is simpler and doesn't steal focus.

@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router';
 import { AccountLink } from '../features/auth/AccountLink.tsx';
 import { CartLink } from '../features/cart/CartLink.tsx';
 import { useScrolledPast } from '../hooks/useScrolledPast.ts';
+import { RouteFocus } from './RouteFocus.tsx';
 
 /**
  * The page frame shared by every route: header, main content, footer.
@@ -33,6 +34,8 @@ export function Layout() {
           </nav>
         </div>
       </header>
+      <RouteFocus />
+      {/* tabIndex={-1}: focusable from code (skip link, route changes) but not a Tab stop. */}
       <main id="main" className="site-main" tabIndex={-1}>
         <Outlet />
       </main>
