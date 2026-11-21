@@ -1,21 +1,32 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import prettier from 'eslint-config-prettier';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage', 'public/mockServiceWorker.js']),
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
+      tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
     languageOptions: {
+      ecmaVersion: 2022,
       globals: globals.browser,
-      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    rules: {
+      // D1-3: no escape hatches from the type checker.
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/ban-ts-comment': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
-])
+  // Must stay last: turns off style rules that Prettier owns.
+  prettier,
+]);
