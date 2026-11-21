@@ -44,7 +44,15 @@
 
 body {
   margin: 0;
+}
+
+/* Page frame: header + main + footer fill exactly the viewport height, so short
+   pages (like login) don't get a scrollbar and <main> can centre its content. */
+#root {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1,
@@ -197,7 +205,8 @@ img {
 .site-main {
   padding-top: 1.5rem;
   padding-bottom: 4rem;
-  min-height: calc(100vh - 140px);
+  flex: 1;
+  width: 100%;
 }
 
 .site-main:focus {
@@ -709,7 +718,23 @@ img {
 
 /* ---------- Forms, auth, account ---------- */
 
+.auth-page {
+  /* Fills <main> and centres the card both ways. */
+  flex: 1;
+  display: grid;
+  place-items: center;
+  /* <main> has 1.5rem top / 4rem bottom padding; this evens it out. */
+  padding-top: 2.5rem;
+}
+
+/* Only when a page uses .auth-page does <main> become a flex column. */
+.site-main:has(> .auth-page) {
+  display: flex;
+  flex-direction: column;
+}
+
 .auth-card {
+  width: 100%;
   max-width: 420px;
   margin: 1rem auto;
   padding: 2rem;

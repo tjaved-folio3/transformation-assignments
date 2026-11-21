@@ -77,73 +77,75 @@ export function LoginPage() {
   }
 
   return (
-    <section className="auth-card">
-      <h1>Log in</h1>
-      {sessionExpired && (
-        <p className="notice" role="status">
-          Your session expired. Please log in again.
-        </p>
-      )}
-      <p className="auth-card__hint">
-        Demo account: <code>dev@bugbazaar.test</code> / <code>password123</code>
-      </p>
-
-      {/* noValidate: we show our own accessible error messages instead of the browser's bubbles. */}
-      <form noValidate onSubmit={handleSubmit} className="form" aria-label="Log in">
-        <div className="field">
-          <label className="field__label" htmlFor="login-email">
-            Email
-          </label>
-          <input
-            id="login-email"
-            ref={emailRef}
-            className="input"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            aria-invalid={fieldErrors.email ? true : undefined}
-            aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
-          />
-          {fieldErrors.email && (
-            <p id="login-email-error" className="field__error">
-              {fieldErrors.email}
-            </p>
-          )}
-        </div>
-
-        <div className="field">
-          <label className="field__label" htmlFor="login-password">
-            Password
-          </label>
-          <input
-            id="login-password"
-            ref={passwordRef}
-            className="input"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            aria-invalid={fieldErrors.password ? true : undefined}
-            aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
-          />
-          {fieldErrors.password && (
-            <p id="login-password-error" className="field__error">
-              {fieldErrors.password}
-            </p>
-          )}
-        </div>
-
-        {formError && (
-          <p className="form__error" role="alert">
-            {formError}
+    <div className="auth-page">
+      <section className="auth-card">
+        <h1>Log in</h1>
+        {sessionExpired && (
+          <p className="notice" role="status">
+            Your session expired. Please log in again.
           </p>
         )}
+        <p className="auth-card__hint">
+          Demo account: <code>dev@bugbazaar.test</code> / <code>password123</code>
+        </p>
 
-        <button type="submit" className="button" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging in…' : 'Log in'}
-        </button>
-      </form>
-    </section>
+        {/* noValidate: we show our own accessible error messages instead of the browser's bubbles. */}
+        <form noValidate onSubmit={handleSubmit} className="form" aria-label="Log in">
+          <div className="field">
+            <label className="field__label" htmlFor="login-email">
+              Email
+            </label>
+            <input
+              id="login-email"
+              ref={emailRef}
+              className="input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={fieldErrors.email ? true : undefined}
+              aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
+            />
+            {fieldErrors.email && (
+              <p id="login-email-error" className="field__error">
+                {fieldErrors.email}
+              </p>
+            )}
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="login-password">
+              Password
+            </label>
+            <input
+              id="login-password"
+              ref={passwordRef}
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={fieldErrors.password ? true : undefined}
+              aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
+            />
+            {fieldErrors.password && (
+              <p id="login-password-error" className="field__error">
+                {fieldErrors.password}
+              </p>
+            )}
+          </div>
+
+          {formError && (
+            <p className="form__error" role="alert">
+              {formError}
+            </p>
+          )}
+
+          <button type="submit" className="button" disabled={isSubmitting}>
+            {isSubmitting ? 'Logging in…' : 'Log in'}
+          </button>
+        </form>
+      </section>
+    </div>
   );
 }
