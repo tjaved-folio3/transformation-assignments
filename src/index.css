@@ -219,6 +219,9 @@ img {
   color: var(--color-muted);
   font-size: 0.875rem;
   border-top: 1px solid var(--color-border);
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
 }
 
 .page-header {
@@ -367,7 +370,7 @@ img {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  position: relative;
+  overflow: hidden;
   color: inherit;
   text-decoration: none;
   transition:
@@ -380,36 +383,7 @@ img {
   transform: translateY(-2px);
 }
 
-/* Green outline that draws itself around the card in 200ms on hover:
-   starts at the top-left corner, runs down the left edge, along the bottom,
-   up the right edge and back along the top to meet its start.
-   The <rect> path runs clockwise and ends at the top-left corner, so we
-   reveal it from its END backwards: that gives the counter-clockwise route.
-   dasharray "1 1" + dashoffset -1 (hidden) -> 0 (fully drawn) does the reveal. */
-.product-card__outline {
-  position: absolute;
-  inset: -1px; /* cover the card's own 1px border exactly */
-  width: calc(100% + 2px);
-  height: calc(100% + 2px);
-  pointer-events: none;
-}
-
-.product-card__outline rect {
-  fill: none;
-  stroke: var(--color-accent);
-  stroke-width: 2; /* half is clipped by the svg edge: 1px visible, over the border */
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: -1;
-  transition: stroke-dashoffset 200ms linear;
-}
-
-.product-card__link:hover .product-card__outline rect,
-.product-card__link:focus-visible .product-card__outline rect {
-  stroke-dashoffset: 0;
-}
-
 .product-card__image {
-  border-radius: 3px 3px 0 0; /* the card no longer clips with overflow: hidden */
   aspect-ratio: 4 / 3;
   width: 100%;
   object-fit: cover;
@@ -702,8 +676,7 @@ img {
     animation: none;
   }
 
-  .product-card__link,
-  .product-card__outline rect {
+  .product-card__link {
     transition: none;
   }
 }
