@@ -88,3 +88,22 @@ Each task records what we chose, what else we considered, and why.
 - **Grouping only by file type** (all components in one folder): simpler at first, but features get scattered across folders as the app grows.
 
 **Verified:** a fresh copy ran `npm ci`, then `npm run check`, then `npm run build` in about 15 seconds (most of the 5-minute budget is downloading packages).
+
+---
+
+## D2-1: Product list and details
+
+**Choice:**
+
+- **React Router** (library mode) with `createBrowserRouter`, so all routes live in one object in `src/router.tsx`.
+- **A shared `<Layout>`** renders the header and footer, and React Router fills in its `<Outlet />` with the current page.
+- **Real links for cards:** each `ProductCard` is one `<Link>` (a real `<a>`), so Tab and Enter work for free.
+- **Prices:** stored as integer cents and formatted only at display time with one reused `Intl.NumberFormat`, which gives `$1,234.56` with correct separators.
+- **Fetching:** a first version of the `useApiQuery` hook. It stores the `key` with each result, so a result is only shown for the key it was loaded for.
+
+**Considered:**
+
+- **TanStack Router:** fully typed routes, but more to learn this week.
+- **Floats for money:** rejected, because `0.1 + 0.2 = 0.30000000000000004`.
+- **`toFixed(2)` for prices:** rejected, because it doesn't add the `$` sign or thousands separators.
+- **`onClick` on a `<div>` card:** rejected, because keyboards and screen readers can't use it.
