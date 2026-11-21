@@ -4,6 +4,7 @@ import { itemRemoved, quantityChanged } from '../../store/cartSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectCartCount, selectCartItems, selectCartTotal } from '../../store/selectors.ts';
 import { formatPrice } from '../../utils/format.ts';
+import { assetUrl } from '../../utils/assets.ts';
 
 export function CartPage() {
   const dispatch = useAppDispatch();
@@ -36,7 +37,7 @@ export function CartPage() {
         <ul className="cart__items">
           {items.map((item) => (
             <li key={item.productId} className="cart-line">
-              <img className="cart-line__image" src={item.imageUrl} alt="" width={96} height={72} />
+              <img className="cart-line__image" src={assetUrl(item.imageUrl)} alt="" width={96} height={72} />
               <div className="cart-line__info">
                 <Link to={`/products/${item.productId}`} className="cart-line__name">
                   {item.name}

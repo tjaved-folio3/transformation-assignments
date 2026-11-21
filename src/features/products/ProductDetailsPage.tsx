@@ -9,6 +9,7 @@ import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { AddToCart } from '../cart/AddToCart.tsx';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
+import { assetUrl } from '../../utils/assets.ts';
 
 /** Ids run from p-0001 to p-5000 (see docs/api-contract.md). */
 const LAST_PRODUCT_NUMBER = 5000;
@@ -45,7 +46,7 @@ export function ProductDetailsPage() {
       {state.status === 'error' && <ApiErrorView error={state.error} what="this product" onRetry={refetch} />}
       {state.status === 'success' && (
         <article className="details">
-          <img className="details__image" src={state.data.imageUrl} alt="" width={400} height={300} />
+          <img className="details__image" src={assetUrl(state.data.imageUrl)} alt="" width={400} height={300} />
           <div className="details__info">
             <p className="details__category">{state.data.category}</p>
             <h1>{state.data.name}</h1>

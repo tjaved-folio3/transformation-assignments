@@ -17,27 +17,33 @@ import { ProductListPage } from './features/products/ProductListPage.tsx';
  * Routes nested under <ProtectedRoute> require a signed-in user.
  * "*" catches any URL that doesn't match and shows a Not Found page.
  */
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      element: <Layout />,
+      // Any error thrown while rendering a page lands here (D4-7) instead of a white screen.
+      errorElement: <RouteErrorBoundary />,
+      children: [
+        { path: '/', element: <ProductListPage /> },
+        { path: '/products/:id', element: <ProductDetailsPage /> },
+        { path: '/cart', element: <CartPage /> },
+        { path: '/login', element: <LoginPage /> },
+        {
+          element: <ProtectedRoute />,
+          children: [
+            { path: '/account', element: <AccountPage /> },
+            { path: '/checkout', element: <CheckoutPage /> },
+            { path: '/orders/:id', element: <OrderPage /> },
+          ],
+        },
+        // Only when mocks/dev tools are on: lets us trigger a crash on purpose.
+        ...(import.meta.env.VITE_ENABLE_MOCKS !== 'false' ? [{ path: '/debug/crash', element: <CrashTest /> }] : []),
+        { path: '*', element: <NotFoundPage /> },
+      ],
+    },
+  ],
   {
-    element: <Layout />,
-    // Any error thrown while rendering a page lands here (D4-7) instead of a white screen.
-    errorElement: <RouteErrorBoundary />,
-    children: [
-      { path: '/', element: <ProductListPage /> },
-      { path: '/products/:id', element: <ProductDetailsPage /> },
-      { path: '/cart', element: <CartPage /> },
-      { path: '/login', element: <LoginPage /> },
-      {
-        element: <ProtectedRoute />,
-        children: [
-          { path: '/account', element: <AccountPage /> },
-          { path: '/checkout', element: <CheckoutPage /> },
-          { path: '/orders/:id', element: <OrderPage /> },
-        ],
-      },
-      // Only when mocks/dev tools are on: lets us trigger a crash on purpose.
-      ...(import.meta.env.VITE_ENABLE_MOCKS !== 'false' ? [{ path: '/debug/crash', element: <CrashTest /> }] : []),
-      { path: '*', element: <NotFoundPage /> },
-    ],
+    // Lets the same build run under a sub-path (GitHub Pages).
+    basename: import.meta.env.BASE_URL,
   },
-]);
+);

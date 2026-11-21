@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import type { Product } from '../../types/api.ts';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
+import { assetUrl } from '../../utils/assets.ts';
 
 type ProductCardProps = {
   product: Product;
@@ -17,7 +18,14 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link to={`/products/${product.id}`} className="product-card__link">
       {/* alt="" because the product name right below says the same thing;
           a screen reader would otherwise read the name twice. */}
-      <img className="product-card__image" src={product.imageUrl} alt="" width={200} height={150} loading="lazy" />
+      <img
+        className="product-card__image"
+        src={assetUrl(product.imageUrl)}
+        alt=""
+        width={200}
+        height={150}
+        loading="lazy"
+      />
       <div className="product-card__body">
         <h3 className="product-card__name">{product.name}</h3>
         <span className="rating">★ {product.rating.toFixed(1)}</span>

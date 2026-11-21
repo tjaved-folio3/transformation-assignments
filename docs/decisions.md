@@ -340,3 +340,24 @@ Components switch on `kind` and never render `error.message` from the server.
 
 - **Sentry SDK:** the real-world choice, but it needs an account and DSN. `logError` is the single seam where it would plug in.
 - **One boundary only:** a router-level crash would then lose the header too. Two levels keep the layout when only a page fails.
+
+---
+
+## D4-6: Continuous integration and deployment
+
+**Choice:** GitHub Actions (`.github/workflows/ci.yml`). On every pull request and every push to `main`, one job runs `npm ci`, lint, typecheck, format check, tests and build. That's the same as `npm run check && npm run build` locally.
+
+**Blocking merges:** a workflow can only _report_ a failure. Blocking is a repository setting: **Settings → Branches → Branch protection rule for `main` → Require status checks to pass → "Lint, typecheck, test, build"**. With that on, a failing test turns the PR check red and the merge button is disabled.
+
+**Bonus, automatic deploy:** on pushes to `main`, after the checks pass, a second job builds with `VITE_BASE=/<repo>/` and publishes `dist/` to GitHub Pages. To support a sub-path:
+
+- The router gets `basename: import.meta.env.BASE_URL`.
+- Image paths go through `assetUrl()`.
+- `index.html` is copied to `404.html`, so deep links like `/cart` load the app. Pages has no SPA fallback.
+
+Verified locally by serving the sub-path build: routes, images, deep links and the mock API all work.
+
+**Considered:**
+
+- **Separate jobs per check** (lint / test / build in parallel): faster feedback, but 4× the `npm ci` time on a small project.
+- **Vercel / Netlify:** zero-config previews per PR, but they need an external account. Pages works with only the repo.

@@ -21,7 +21,7 @@ export function ErrorFallback({ onReset }: ErrorFallbackProps) {
           </button>
         )}
         {/* A full page load resets all in-memory state, which a crash may have corrupted. */}
-        <a className="button button--secondary" href="/">
+        <a className="button button--secondary" href={import.meta.env.BASE_URL}>
           Back to the shop
         </a>
       </div>
