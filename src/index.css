@@ -20,8 +20,8 @@
   --color-warning-text: #633806;
   --color-focus: #185fa5;
 
-  --radius: 8px;
-  --radius-lg: 14px;
+  --radius: 4px;
+  --radius-lg: 4px;
   --shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 5%);
   --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, Consolas, monospace;
@@ -153,7 +153,7 @@ img {
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius);
   background: var(--color-highlight);
   font-size: 1.1rem;
 }
@@ -187,7 +187,7 @@ img {
   min-width: 1.4rem;
   height: 1.4rem;
   padding: 0 0.35rem;
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--color-accent);
   color: #fff;
   font-size: 0.75rem;
@@ -301,6 +301,16 @@ img {
   font: inherit;
 }
 
+/* Custom arrow so we control its distance from the right border (12px). */
+.select {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%231f1d1a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+}
+
 .input[aria-invalid='true'] {
   border-color: var(--color-danger);
 }
@@ -399,7 +409,7 @@ img {
   font-size: 0.8rem;
   font-weight: 600;
   padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--color-accent-soft);
   color: var(--color-accent-hover);
 }
@@ -1018,7 +1028,7 @@ img {
 
 .view-toggle a {
   padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius);
   color: var(--color-muted);
   text-decoration: none;
   font-weight: 500;
