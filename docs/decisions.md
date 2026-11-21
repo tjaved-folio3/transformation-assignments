@@ -43,3 +43,23 @@ Each task records what we chose, what else we considered, and why.
 - **Fake functions** (like the Week 1 `mockApi.js`): simplest, but they skip HTTP entirely. Status codes, headers and `fetch` errors would never be exercised, so the data layer would be untested.
 
 **Trade-off:** the MSW worker adds ~160 kB to the bundle. It's loaded with a dynamic `import()` only when mocks are on, so a real deployment would not ship it.
+
+---
+
+## D1-4: One place for all requests
+
+**Choice:** `src/api/client.ts` exports `apiRequest()`, the only function that calls `fetch`. Small per-resource modules (`products.ts`, `auth.ts`, `orders.ts`) wrap it with typed functions such as `fetchProduct(id, signal)`. An ESLint `no-restricted-globals` rule fails the build if `fetch` appears anywhere else, so the rule doesn't depend on people remembering it.
+
+**What the client handles once, for everyone:**
+- The base URL
+- JSON encoding and decoding
+- The `Authorization` header
+- `AbortSignal` support, so callers can cancel requests
+- Converting *every* failure (HTTP error, network failure, non-JSON body) into a single `ApiRequestError` with `status`, `code` and `details`
+
+**Avoiding a circular import:** the client needs the token from Redux, and Redux will call the client, so importing in both directions would create a loop. Instead the store "plugs in" `getToken` and `onUnauthorized` callbacks at startup with `configureApiAuth()`. This is dependency injection in its simplest form.
+
+**Considered:**
+- **axios:** interceptors would do the same job, but it's another dependency, and `fetch` plus a 90-line wrapper covers everything we need.
+- **RTK Query / TanStack Query as the data layer:** discussed in D3-5.
+- **Zod** for validating responses at runtime: the right choice for a real third-party API. Here we own both sides of the contract, so we trust the types and skip the extra dependency.
