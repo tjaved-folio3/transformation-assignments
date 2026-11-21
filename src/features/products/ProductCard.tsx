@@ -35,6 +35,11 @@ export const ProductCard = memo(function ProductCard({ product, stock }: Product
         height={150}
         loading="lazy"
       />
+      {/* Decorative hover outline. pathLength="1" lets the CSS treat the whole
+          outline as length 1, whatever the card's real size is. */}
+      <svg className="product-card__outline" aria-hidden="true" focusable="false">
+        <rect width="100%" height="100%" rx="4" pathLength="1" />
+      </svg>
       <div className="product-card__body">
         <h2 className="product-card__name">{product.name}</h2>
         <span className="rating">★ {product.rating.toFixed(1)}</span>
