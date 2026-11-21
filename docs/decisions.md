@@ -179,3 +179,27 @@ Each task records what we chose, what else we considered, and why.
 
 - **`useSyncExternalStore` for scroll position:** React's official way to subscribe to browser APIs, and a good fit. We kept `useEffect` because it shows the cleanup pattern more clearly.
 - **A debounce library** (`lodash.debounce`): unnecessary for 8 lines.
+
+---
+
+## D2-6: Race conditions in search
+
+**Problem:** responses don't always come back in the order requests were sent. If "du" is slow and "duck" is fast, a naïve app shows "duck" results and is then overwritten by the stale "du" results.
+
+**Simulating it:**
+
+- **In the browser:** Mock API controls → **Network speed: Random**. Every response takes a random 100–2000 ms, so they arrive out of order.
+- **In tests:** `ProductListPage.race.test.tsx` makes the old query slow (300 ms) and the new one fast (20 ms) on purpose.
+
+**Defense in three layers:**
+
+1. **Debounce** (`useDebouncedValue`, 300 ms) means far fewer requests in flight to begin with. This reduces the problem; it doesn't solve it.
+2. **Abort** (`useApiQuery` cleanup) means that when the query key changes, the previous request is cancelled, so its response never arrives.
+3. **Key check:** a result is only shown if it was stored for the _current_ key and attempt. Even if a stale response somehow got through, it wouldn't be displayed.
+
+**Proof the tests catch it:** with the abort cleanup temporarily removed, the race test and 3 hook tests fail; with it restored, they pass.
+
+**Considered:**
+
+- **A request counter** ("only accept response #N if N is the latest"): works, but doesn't cancel the network request.
+- **RxJS `switchMap`:** the same idea, but too heavy a dependency for this.
