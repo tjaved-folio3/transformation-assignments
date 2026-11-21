@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router';
+import { CartLink } from '../features/cart/CartLink.tsx';
 import { useScrolledPast } from '../hooks/useScrolledPast.ts';
 
 /**
@@ -26,6 +27,7 @@ export function Layout() {
             <NavLink to="/" end className="site-nav__link">
               Shop
             </NavLink>
+            <CartLink />
           </nav>
         </div>
       </header>

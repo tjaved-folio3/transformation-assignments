@@ -5,6 +5,7 @@ import { BackToTop } from '../../components/BackToTop.tsx';
 import { NotFoundPage } from '../../components/NotFoundPage.tsx';
 import { ErrorState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
+import { AddToCart } from '../cart/AddToCart.tsx';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
 
@@ -56,6 +57,8 @@ export function ProductDetailsPage() {
             <span className="rating">★ {state.data.rating.toFixed(1)} / 5</span>
             <span className="details__price">{formatPrice(state.data.price)}</span>
             <StockBadge stock={state.data.stock} />
+            {/* key: reset the quantity picker when switching to another product */}
+            <AddToCart key={state.data.id} product={state.data} />
           </div>
         </article>
       )}

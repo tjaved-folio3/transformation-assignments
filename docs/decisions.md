@@ -203,3 +203,30 @@ Each task records what we chose, what else we considered, and why.
 
 - **A request counter** ("only accept response #N if N is the latest"): works, but doesn't cancel the network request.
 - **RxJS `switchMap`:** the same idea, but too heavy a dependency for this.
+
+---
+
+## D3-1: Redux Toolkit for cart and session
+
+**Choice:** a single Redux Toolkit store (`src/store/`) with two slices:
+
+- **`cart`:** `itemAdded`, `quantityChanged`, `itemRemoved`, `stockUpdated`, `cartCleared`.
+- **`auth`:** `loggedIn`, `userLoaded`, `loggedOut`, `sessionExpired`.
+
+State changes **only** by dispatching these actions. Reducers enforce the rules in one place (e.g. quantity is always clamped to `1..stock`), so no component can put the cart into an invalid state.
+
+**Derived values:** `selectCartCount` and `selectCartTotal` are memoized selectors (`createSelector`) computed from `items`. The header badge reads `selectCartCount`. Storing a `count` field would mean every reducer has to keep it in sync, and one day it wouldn't.
+
+**What goes where (the three kinds of state):**
+
+| State            | Where                        | Why                                                                    |
+| ---------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| Cart, session    | Redux (client state)         | Shared by many components across pages; changes through defined events |
+| Products, orders | `useApiQuery` (server state) | The server owns it; we cache a copy, we don't own it                   |
+| Filters, page    | URL                          | Must survive refresh and be shareable                                  |
+
+**Considered:**
+
+- **React Context + `useReducer`:** fine for small apps, but every consumer re-renders on any change, and there are no DevTools.
+- **Zustand:** less boilerplate, but the brief's topic is Redux Toolkit.
+- **Putting products in Redux:** it would make Redux a hand-rolled cache. That's RTK Query's job (see D3-5).
