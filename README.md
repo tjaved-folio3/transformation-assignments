@@ -2,6 +2,13 @@
 
 A small store for developer gear (rubber ducks, mechanical keyboards, coffee and stickers), built with **React 19 + TypeScript (strict)**. It runs entirely in the browser against a mock API of 5,000 products, so there is no backend to set up.
 
+## What you can do
+
+- **Browse** 5,000 products: search (debounced), filter by category and stock, and sort. Filters live in the URL, so refresh, shared links and Back all work. Choose 24 per page or **Show all results**, which is a virtualized grid.
+- **See stock change live** over a WebSocket, with automatic reconnection.
+- **Buy:** add to cart (quantities capped by stock, cart saved across reloads), log in, check out, and watch the order move from _queued_ to _confirmed_. Retrying a failed checkout never creates a duplicate order.
+- **Break things on purpose** from the Mock API controls panel: 500s, 409 out of stock, 401 expired session, slow or out-of-order network, dropped live connection, or a crashing page.
+
 ## Quick start (about 2 minutes)
 
 **Prerequisites:** [Node.js](https://nodejs.org) **22.12 or newer** (`node -v` to check; `nvm use` picks the right version from `.nvmrc`) and Git.
@@ -55,20 +62,61 @@ src/
   api/                The data layer: the ONLY code that makes network requests
   mocks/              Mock backend: seed data, fake DB, request handlers, Dev panel
   types/              Shared TypeScript types (API contract, request state)
-  store/              Redux Toolkit store, slices and selectors (cart, session)
-  features/           Feature folders (products, cart, auth, orders): pages + their components
-  components/         Shared UI building blocks (layout, loading/empty/error states)
-  hooks/              Reusable custom hooks (debounce, scroll position, API queries)
-  utils/              Small pure helpers (price formatting, …)
+  store/              Redux Toolkit store, slices, selectors, persistence (cart, session)
+  features/           Feature folders (products, cart, checkout, orders, auth, account): pages + their components
+  components/         Shared UI (layout, loading/empty/error states, error boundaries, Back to Top)
+  hooks/              Reusable custom hooks (API queries, live stock, debounce, scroll, storage, title)
+  monitoring/         Error logger and render profiler
+  utils/              Small pure helpers (price formatting, asset URLs)
   test/               Test setup (MSW server for Node)
+scripts/              measure-performance.py (D4-2 measurements)
+.github/workflows/    CI: lint, typecheck, format, tests, build; Pages deploy
 ```
+
+## Demo script (5 minutes)
+
+1. **Home:** type `pirate` (one request after you stop typing), pick **Rubber ducks**, tick **In stock only**, copy the URL into a new tab (same view), then press Back.
+2. Watch a stock badge change by itself (live stock), then click **Show all results** and scroll through 5,000 products.
+3. Open a product, use **Next product →** quickly a few times, then **Add to cart**.
+4. **Cart:** change quantities (capped at stock), reload (the cart is still there), then **Checkout** → log in with the demo account → you're sent back to checkout.
+5. In the Mock API controls, tick **order saved, then 500**, then **Place order** (error) → untick → **Try again**. You get one order, not two, and the confirmation page moves to _Confirmed_.
+6. Add an item again, tick **409 out of stock**, then **Place order**: the message names the item that ran out.
+7. Click **Expire my session**, then open **Account**: you're sent to login with "Your session expired".
+
+## Documentation
+
+| Doc                                              | What's in it                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)   | Folder structure, data-flow diagram, where each kind of state lives, design patterns |
+| [`docs/decisions.md`](docs/decisions.md)         | Every task: what we chose, what else we considered, and why                          |
+| [`docs/api-contract.md`](docs/api-contract.md)   | Endpoints, shapes, status codes, and how to trigger each error                       |
+| [`docs/auth.md`](docs/auth.md)                   | Login flow, 401 handling, token storage trade-off                                    |
+| [`docs/accessibility.md`](docs/accessibility.md) | Lighthouse scores and what makes the store accessible                                |
+| [`docs/performance.md`](docs/performance.md)     | Before/after measurements for virtualization and memoization                         |
+| [`docs/monitoring.md`](docs/monitoring.md)       | Error boundaries, logging, three things to track                                     |
+| [`docs/orders.md`](docs/orders.md)               | Queue-based order design, email failures, double-charge prevention                   |
+| [`docs/glossary.md`](docs/glossary.md)           | Architecture terms with examples from the store                                      |
+| [`docs/ai-notes.md`](docs/ai-notes.md)           | How AI was used, a mistake it made, what I wouldn't hand to it                       |
+| [`docs/reflection.md`](docs/reflection.md)       | Self-assessment per topic and next steps                                             |
+
+## Testing and CI
+
+`npm test` runs 44 Vitest + Testing Library tests against the same MSW mock API the browser uses. They cover:
+
+- cart logic and custom hooks;
+- login, 401 handling and filtering;
+- checkout: success, 409, and an idempotent retry;
+- race conditions and the error boundary.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, format check, tests and build on every pull request, and deploys `main` to GitHub Pages.
 
 ## Tech stack
 
-React 19 · TypeScript 6 (strict) · Vite 8 · React Router · Redux Toolkit · MSW · Vitest + Testing Library · ESLint + Prettier. Why each was chosen is in [`docs/decisions.md`](docs/decisions.md).
+React 19 · TypeScript 6 (strict) · Vite 8 · React Router 7 · Redux Toolkit · MSW (HTTP + WebSocket mocks) · TanStack Virtual · react-error-boundary · Vitest + Testing Library · ESLint + Prettier · GitHub Actions. Why each was chosen is in [`docs/decisions.md`](docs/decisions.md).
 
 ## Troubleshooting
 
 - **`npm install` fails or `npm test` errors on startup:** check `node -v` is 22.12 or newer.
 - **Products never load / "Failed to register a ServiceWorker":** open the app on `localhost` (Service Workers need `localhost` or HTTPS), and do a hard reload (Ctrl+Shift+R).
 - **Everything errors:** open the Mock API controls panel and untick any forced errors, or click **Reset mock data**.
+- **Logged out unexpectedly:** someone (you!) clicked **Expire my session** or reset the mock data. Log in again.
