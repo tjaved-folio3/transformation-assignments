@@ -454,3 +454,21 @@ The numbers and the reasoning for each are in [`docs/performance.md`](performanc
 - **`react-window`:** works well, but its grid component needs a fixed-height scroll container. TanStack Virtual can use the page's own scrollbar (`useWindowVirtualizer`), which keeps the header and footer behaving normally.
 - **Infinite scroll** (load more pages as you scroll): fewer bytes up front, but it still ends with thousands of DOM nodes unless you also virtualize.
 - **CSS `content-visibility: auto`:** skips _painting_ off-screen cards, but React still creates all 5,000 components.
+
+---
+
+## D4-2: Measuring performance
+
+**Choice:** measure before changing anything, with a repeatable script (`scripts/measure-performance.py`: Playwright + Chrome, CPU throttled 4×):
+
+- the browser's **long-task** API for main-thread blocking;
+- a **requestAnimationFrame** loop for scroll smoothness;
+- **DOM node** and heap counts;
+- React's **`<Profiler>`** (`src/monitoring/perf.ts`) for the cost of each re-render.
+
+The two slowest spots it found, rendering 5,000 cards and re-rendering every card on each live update, were fixed in D4-3. All before/after numbers are in [`docs/performance.md`](performance.md).
+
+**Considered:**
+
+- **Lighthouse performance score:** good for page load, but blind to scroll jank and re-render cost.
+- **The Chrome Performance panel by hand:** the most detail, but not repeatable for before/after comparisons.
