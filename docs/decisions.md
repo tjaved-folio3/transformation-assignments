@@ -361,3 +361,31 @@ Verified locally by serving the sub-path build: routes, images, deep links and t
 
 - **Separate jobs per check** (lint / test / build in parallel): faster feedback, but 4× the `npm ci` time on a small project.
 - **Vercel / Netlify:** zero-config previews per PR, but they need an external account. Pages works with only the repo.
+
+---
+
+## D4-5: Testing
+
+**Choice:** Vitest (it reuses the Vite config) with React Testing Library and `user-event`, in a jsdom environment. The **same MSW handlers** the browser uses run in Node via `msw/node` (`src/test/server.ts`), so tests exercise the real data layer, status codes and error mapping. Nothing about `fetch` is mocked by hand.
+
+**43 tests across 17 files**, covering every area the brief lists:
+
+| Area         | Tests                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cart logic   | merge lines, cap at stock, ignore out-of-stock, cap when stock drops, derived count/total                                                             |
+| Custom hooks | `useApiQuery` aborts on switch/unmount, never shows the wrong product, caching/invalidation; `useDebouncedValue`; `useLocalStorage` (incl. junk data) |
+| Login & auth | redirect to login and back, wrong password message, no double submit, 401 clears the session                                                          |
+| Filtering    | category + in-stock update the URL and results, a copied link restores the view, empty state, URL parsing edge cases                                  |
+| Checkout     | **successful order**, **409 names the item**, retry after a lost response creates **no duplicate**                                                    |
+| Plus         | mock API contract (every status code), data-layer error mapping, race condition, error boundary, price formatting                                     |
+
+**Testing behavior, not implementation:**
+
+- Tests find elements the way users do (`getByRole('button', { name: 'Place order' })`, `getByLabelText('Email')`) and assert what users see or what the server received.
+- They never inspect component state or which hooks were called. Refactoring internals (e.g. swapping our cache for RTK Query) shouldn't break them.
+- We also proved the race and cleanup tests catch the bug they're for: removing the abort made 4 of them fail.
+
+**Considered:**
+
+- **Jest:** needs separate TypeScript/ESM configuration; Vitest shares Vite's.
+- **Playwright end-to-end tests:** the best confidence for the full flow, but slower. Unit and integration tests with MSW give most of the value here, and I used Playwright manually for browser checks.
