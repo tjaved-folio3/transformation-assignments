@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { fetchProducts, toProductSearchParams } from '../../api/products.ts';
 import { BackToTop } from '../../components/BackToTop.tsx';
-import { EmptyState, ErrorState, LoadingState } from '../../components/StatusViews.tsx';
+import { ApiErrorView } from '../../components/ApiErrorView.tsx';
+import { EmptyState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { formatCount } from '../../utils/format.ts';
 import { FiltersBar } from './FiltersBar.tsx';
@@ -23,13 +24,7 @@ export function ProductListPage() {
       case 'loading':
         return <LoadingState label="Loading products…" />;
       case 'error':
-        return (
-          <ErrorState
-            title="We couldn't load the products"
-            message="Something went wrong on our side. Please try again."
-            onRetry={refetch}
-          />
-        );
+        return <ApiErrorView error={state.error} what="the products" onRetry={refetch} />;
       case 'success': {
         const { items, total } = state.data;
         const totalPages = Math.ceil(total / PAGE_SIZE);

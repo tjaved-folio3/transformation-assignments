@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { login } from '../../api/auth.ts';
-import { ApiRequestError } from '../../api/client.ts';
+import { toUserError } from '../../api/errors.ts';
 import { loggedIn } from '../../store/authSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectIsAuthenticated } from '../../store/selectors.ts';
@@ -51,12 +51,14 @@ export function LoginPage() {
       dispatch(loggedIn(session));
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      if (error instanceof ApiRequestError && error.status === 400) {
-        setFieldErrors({ email: error.details?.email, password: error.details?.password });
-      } else if (error instanceof ApiRequestError && error.status === 401) {
+      const userError = toUserError(error);
+      if (userError.kind === 'validation') {
+        setFieldErrors({ email: userError.fieldErrors.email, password: userError.fieldErrors.password });
+      } else if (userError.kind === 'unauthorized') {
+        // On the login page a 401 means wrong credentials, not an expired session.
         setFormError('That email and password combination is incorrect.');
-      } else {
-        setFormError("We couldn't sign you in right now. Please try again.");
+      } else if (userError.kind !== 'cancelled') {
+        setFormError(userError.message);
       }
     } finally {
       submittingRef.current = false;

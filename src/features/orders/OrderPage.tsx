@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router';
-import { ApiRequestError } from '../../api/client.ts';
-import { NotFoundPage } from '../../components/NotFoundPage.tsx';
-import { ErrorState, LoadingState } from '../../components/StatusViews.tsx';
+import { ApiErrorView } from '../../components/ApiErrorView.tsx';
+import { LoadingState } from '../../components/StatusViews.tsx';
 import { ORDER_STATUSES, type OrderStatus } from '../../types/api.ts';
 import { useOrderStatus } from './useOrderStatus.ts';
 
@@ -15,17 +14,8 @@ export function OrderPage() {
   const { id = '' } = useParams();
   const state = useOrderStatus(id);
 
-  if (state.status === 'error' && state.error instanceof ApiRequestError && state.error.status === 404) {
-    return <NotFoundPage title="Order not found" message="We couldn't find that order on your account." />;
-  }
   if (state.status === 'error') {
-    return (
-      <ErrorState
-        title="We couldn't load your order"
-        message="Your order is safe. Please refresh to check its status."
-        onRetry={() => window.location.reload()}
-      />
-    );
+    return <ApiErrorView error={state.error} what="your order" onRetry={() => window.location.reload()} />;
   }
   if (state.status !== 'success') return <LoadingState label="Loading your order…" variant="details" />;
 

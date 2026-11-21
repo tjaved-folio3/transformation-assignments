@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
-import { ApiRequestError } from '../../api/client.ts';
+import { toUserError } from '../../api/errors.ts';
 import { createOrder } from '../../api/orders.ts';
 import { fetchProduct } from '../../api/products.ts';
 import { cartCleared, stockUpdated } from '../../store/cartSlice.ts';
@@ -63,9 +63,10 @@ export function CheckoutPage() {
       navigate(`/orders/${order.id}`, { replace: true, flushSync: true });
       dispatch(cartCleared());
     } catch (caught) {
-      if (caught instanceof ApiRequestError && caught.status === 409) {
-        setError({ kind: 'conflict', messages: await refreshStock(Object.keys(caught.details ?? {})) });
-      } else if (caught instanceof ApiRequestError && caught.status === 401) {
+      const userError = toUserError(caught);
+      if (userError.kind === 'conflict') {
+        setError({ kind: 'conflict', messages: await refreshStock(userError.productIds) });
+      } else if (userError.kind === 'unauthorized') {
         // The data layer already cleared the session; ProtectedRoute will
         // redirect to login and bring the user back here afterwards.
       } else {

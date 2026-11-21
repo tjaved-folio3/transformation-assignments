@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router';
-import { ApiRequestError } from '../../api/client.ts';
+import { toUserError } from '../../api/errors.ts';
 import { fetchProduct } from '../../api/products.ts';
 import { BackToTop } from '../../components/BackToTop.tsx';
 import { NotFoundPage } from '../../components/NotFoundPage.tsx';
-import { ErrorState, LoadingState } from '../../components/StatusViews.tsx';
+import { ApiErrorView } from '../../components/ApiErrorView.tsx';
+import { LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { AddToCart } from '../cart/AddToCart.tsx';
 import { formatPrice } from '../../utils/format.ts';
@@ -29,7 +30,7 @@ export function ProductDetailsPage() {
   const { state, refetch } = useApiQuery(`product:${id}`, (signal) => fetchProduct(id, signal));
   const { previous, next } = neighbourIds(id);
 
-  if (state.status === 'error' && state.error instanceof ApiRequestError && state.error.status === 404) {
+  if (state.status === 'error' && toUserError(state.error).kind === 'not-found') {
     return <NotFoundPage title="Product not found" message="This product doesn't exist or was removed." />;
   }
 
@@ -41,13 +42,7 @@ export function ProductDetailsPage() {
       {(state.status === 'loading' || state.status === 'idle') && (
         <LoadingState label="Loading product…" variant="details" />
       )}
-      {state.status === 'error' && (
-        <ErrorState
-          title="We couldn't load this product"
-          message="Something went wrong on our side. Please try again."
-          onRetry={refetch}
-        />
-      )}
+      {state.status === 'error' && <ApiErrorView error={state.error} what="this product" onRetry={refetch} />}
       {state.status === 'success' && (
         <article className="details">
           <img className="details__image" src={state.data.imageUrl} alt="" width={400} height={300} />

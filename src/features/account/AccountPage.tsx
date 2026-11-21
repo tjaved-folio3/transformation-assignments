@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { fetchMe } from '../../api/auth.ts';
-import { ErrorState, LoadingState } from '../../components/StatusViews.tsx';
+import { ApiErrorView } from '../../components/ApiErrorView.tsx';
+import { LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { loggedOut } from '../../store/authSlice.ts';
 import { useAppDispatch } from '../../store/hooks.ts';
@@ -27,13 +28,7 @@ export function AccountPage() {
         </button>
       </div>
       {state.status === 'loading' && <LoadingState label="Loading your account…" variant="details" />}
-      {state.status === 'error' && (
-        <ErrorState
-          title="We couldn't load your account"
-          message="Something went wrong on our side. Please try again."
-          onRetry={refetch}
-        />
-      )}
+      {state.status === 'error' && <ApiErrorView error={state.error} what="your account" onRetry={refetch} />}
       {state.status === 'success' && (
         <dl className="account">
           <dt>Name</dt>

@@ -270,3 +270,30 @@ Full details and the token-storage trade-off are in [`docs/auth.md`](auth.md).
 
 - **Disabling the button only:** this doesn't cover a timeout followed by a reload, or a response lost on the network. The server must dedupe, which is what idempotency keys are for.
 - **Generating the key on the server:** a client-generated key is the standard approach (as with Stripe), because the client is the one that retries.
+
+---
+
+## D3-4: One consistent way to handle backend errors
+
+**Choice:** a two-step pipeline.
+
+1. **`apiRequest()`** (D1-4) turns every failure into an `ApiRequestError { status, code, details }`.
+2. **`toUserError(error)`** (`src/api/errors.ts`) turns that into a typed `UserError` with a `kind` and a message _we_ wrote.
+
+Components switch on `kind` and never render `error.message` from the server.
+
+| Status      | `kind`         | What the user sees                                                                                                                                                              |
+| ----------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400         | `validation`   | Field errors next to each input (`aria-invalid`, `aria-describedby`)                                                                                                            |
+| 401         | `unauthorized` | The data layer dispatches `sessionExpired()`; ProtectedRoute sends you to login with "Your session expired". On the login page itself, 401 means "incorrect email or password". |
+| 404         | `not-found`    | The Not Found page                                                                                                                                                              |
+| 409         | `conflict`     | "“Item” is now out of stock", naming each product from `details`                                                                                                                |
+| 500 / other | `server`       | Friendly message + **Try again**                                                                                                                                                |
+| 0 (offline) | `network`      | "Check your connection" + **Try again**                                                                                                                                         |
+
+`<ApiErrorView>` renders the page-level cases identically on the product list, details, account and order pages.
+
+**Considered:**
+
+- **A global toast for every error:** consistent, but it loses context (which field? which item?).
+- **Showing `error.message`:** fast to write, but it leaks internals ("Simulated server failure", SQL errors) and is unfriendly. A unit test asserts the raw message never appears in the mapped result.
