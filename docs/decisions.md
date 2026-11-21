@@ -126,3 +126,18 @@ Each task records what we chose, what else we considered, and why.
 - **`useState` in the page:** lost on refresh, can't be shared, and Back leaves the page entirely.
 - **Redux:** same problems. Global state is not the same as shareable state.
 - **localStorage:** survives refresh, but a copied link wouldn't reproduce the view.
+
+---
+
+## D2-3: Loading, empty, error and success states
+
+**Choice:** three shared components in `src/components/StatusViews.tsx` (`LoadingState`, `EmptyState`, `ErrorState`), used by every page, so the states look and behave the same everywhere. Pages `switch` on `state.status` from the `RequestState` union. Because the switch must handle every case, TypeScript reminds us if a state is forgotten.
+
+- **Loading:** skeletons shaped like the content, so the layout doesn't jump. Marked `role="status"` with hidden text for screen readers, and the shimmer stops for users who prefer reduced motion.
+- **Empty:** two different cases. "No products match" offers _Clear filters_; "There is no page 999" offers _Go to page 1_.
+- **Error:** friendly copy only (never the raw server message) and a **Try again** button. `useApiQuery` exposes `refetch()`, which bumps an `attempt` counter that is part of the request's identity, so the UI shows "loading" immediately and then re-requests.
+- **404 on details** renders the Not Found page instead of a generic error.
+
+**How to trigger each state:** Mock API controls → "Product list → 500" (error), "Slow" network (loading), search for `zzzz` (empty), `/?page=999`, `/products/p-9999` (404).
+
+**Considered:** a spinner instead of skeletons. Simpler, but the page jumps when content arrives, and skeletons feel faster.
