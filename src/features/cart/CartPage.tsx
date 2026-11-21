@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { EmptyState } from '../../components/StatusViews.tsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
-import { itemRemoved, quantityChanged } from '../../store/cartSlice.ts';
+import { useLiveStock } from '../../hooks/useLiveStock.ts';
+import { itemRemoved, quantityChanged, stockUpdated } from '../../store/cartSlice.ts';
 import { useAppDispatch, useAppSelector } from '../../store/hooks.ts';
 import { selectCartCount, selectCartItems, selectCartTotal } from '../../store/selectors.ts';
 import { formatPrice } from '../../utils/format.ts';
@@ -14,6 +15,11 @@ export function CartPage() {
   const total = useAppSelector(selectCartTotal);
   const hasUnavailable = items.some((item) => item.stock === 0);
   useDocumentTitle('Your cart');
+  // Live stock keeps cart quantities within what's actually available.
+  useLiveStock(
+    items.map((item) => item.productId),
+    (message) => dispatch(stockUpdated({ productId: message.productId, stock: message.stock })),
+  );
 
   if (items.length === 0) {
     return (

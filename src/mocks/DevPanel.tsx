@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage.ts';
 import { db } from './db.ts';
+import { dropLiveStockConnections } from './liveStock.ts';
 import {
   LATENCY_MODES,
   MOCK_SCENARIOS,
@@ -70,6 +71,15 @@ export function DevPanel() {
           }}
         >
           Expire my session (401)
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            dropLiveStockConnections();
+            setNote('Live stock connection dropped: watch it reconnect.');
+          }}
+        >
+          Drop live connection
         </button>
         <a href={`${import.meta.env.BASE_URL}debug/crash`}>Crash a page (error boundary)</a>
         <button

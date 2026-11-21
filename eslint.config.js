@@ -31,12 +31,13 @@ export default defineConfig([
     // D1-4: components never make network calls directly. Only the data layer
     // (src/api/client.ts), the mock server and tests may use fetch/XMLHttpRequest.
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/api/client.ts', 'src/mocks/**', '**/*.test.{ts,tsx}', 'src/test/**'],
+    ignores: ['src/api/client.ts', 'src/api/liveStock.ts', 'src/mocks/**', '**/*.test.{ts,tsx}', 'src/test/**'],
     rules: {
       'no-restricted-globals': [
         'error',
         { name: 'fetch', message: 'Use the data layer in src/api/ instead of calling fetch directly.' },
         { name: 'XMLHttpRequest', message: 'Use the data layer in src/api/ instead.' },
+        { name: 'WebSocket', message: 'Use useLiveStock / src/api/liveStock.ts instead.' },
       ],
     },
   },

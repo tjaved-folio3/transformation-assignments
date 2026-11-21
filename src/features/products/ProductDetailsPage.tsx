@@ -7,6 +7,7 @@ import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
+import { useLiveStock } from '../../hooks/useLiveStock.ts';
 import { AddToCart } from '../cart/AddToCart.tsx';
 import { formatPrice } from '../../utils/format.ts';
 import { StockBadge } from './StockBadge.tsx';
@@ -32,6 +33,9 @@ export function ProductDetailsPage() {
   const { state, refetch } = useApiQuery(`product:${id}`, (signal) => fetchProduct(id, signal));
   const { previous, next } = neighbourIds(id);
   useDocumentTitle(state.status === 'success' ? state.data.name : 'Product');
+  const { stockById } = useLiveStock(state.status === 'success' ? [id] : []);
+  const liveProduct =
+    state.status === 'success' ? { ...state.data, stock: stockById[id] ?? state.data.stock } : undefined;
 
   if (state.status === 'error' && toUserError(state.error).kind === 'not-found') {
     return <NotFoundPage title="Product not found" message="This product doesn't exist or was removed." />;
@@ -46,17 +50,17 @@ export function ProductDetailsPage() {
         <LoadingState label="Loading product…" variant="details" />
       )}
       {state.status === 'error' && <ApiErrorView error={state.error} what="this product" onRetry={refetch} />}
-      {state.status === 'success' && (
+      {liveProduct && (
         <article className="details">
-          <img className="details__image" src={assetUrl(state.data.imageUrl)} alt="" width={400} height={300} />
+          <img className="details__image" src={assetUrl(liveProduct.imageUrl)} alt="" width={400} height={300} />
           <div className="details__info">
-            <p className="details__category">{state.data.category}</p>
-            <h1>{state.data.name}</h1>
-            <span className="rating">★ {state.data.rating.toFixed(1)} / 5</span>
-            <span className="details__price">{formatPrice(state.data.price)}</span>
-            <StockBadge stock={state.data.stock} />
+            <p className="details__category">{liveProduct.category}</p>
+            <h1>{liveProduct.name}</h1>
+            <span className="rating">★ {liveProduct.rating.toFixed(1)} / 5</span>
+            <span className="details__price">{formatPrice(liveProduct.price)}</span>
+            <StockBadge stock={liveProduct.stock} />
             {/* key: reset the quantity picker when switching to another product */}
-            <AddToCart key={state.data.id} product={state.data} />
+            <AddToCart key={liveProduct.id} product={liveProduct} />
           </div>
         </article>
       )}

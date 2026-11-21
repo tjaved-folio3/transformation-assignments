@@ -5,6 +5,8 @@ import { ApiErrorView } from '../../components/ApiErrorView.tsx';
 import { EmptyState, LoadingState } from '../../components/StatusViews.tsx';
 import { useApiQuery } from '../../hooks/useApiQuery.ts';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
+import { useLiveStock } from '../../hooks/useLiveStock.ts';
+import { LiveStatus } from '../../components/LiveStatus.tsx';
 import { formatCount } from '../../utils/format.ts';
 import { FiltersBar } from './FiltersBar.tsx';
 import { Pagination } from './Pagination.tsx';
@@ -19,6 +21,9 @@ export function ProductListPage() {
   const key = `products?${toProductSearchParams(query).toString()}`;
   const { state, refetch } = useApiQuery(key, (signal) => fetchProducts(query, signal));
   useDocumentTitle(filters.q ? `Search: ${filters.q}` : 'Shop developer gear');
+  // Subscribe to live stock for exactly the products on screen.
+  const visibleIds = state.status === 'success' ? state.data.items.map((product) => product.id) : [];
+  const { stockById, status: liveStatus } = useLiveStock(visibleIds);
 
   function renderResults() {
     switch (state.status) {
@@ -58,7 +63,7 @@ export function ProductListPage() {
         }
         return (
           <>
-            <ProductGrid products={items} />
+            <ProductGrid products={items} stockById={stockById} />
             <Pagination filters={filters} totalPages={totalPages} />
           </>
         );
@@ -70,6 +75,7 @@ export function ProductListPage() {
     <>
       <div className="page-header">
         <h1>Shop developer gear</h1>
+        <LiveStatus status={liveStatus} />
         {/* A live region must exist BEFORE its text changes, so it's always rendered.
             Screen readers then announce "123 products" after each filter change. */}
         <p className="result-count" aria-live="polite">

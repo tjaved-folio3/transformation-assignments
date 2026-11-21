@@ -408,3 +408,31 @@ Results: **Lighthouse 100 on home, cart and login**. Details in [`docs/accessibi
 
 - **`eslint-plugin-jsx-a11y`:** it catches many issues at lint time, but doesn't support ESLint 10 yet. Lighthouse plus manual keyboard testing covered it instead.
 - **A focus-trapping modal for "Added to cart":** an inline `role="status"` message is simpler and doesn't steal focus.
+
+---
+
+## D4-4: Live stock updates
+
+**Choice:** WebSockets, mocked with MSW's `ws.link()` API (`src/mocks/liveStock.ts`). The client lives in the data layer (`src/api/liveStock.ts`), and components use the `useLiveStock(productIds)` hook. ESLint now also bans `new WebSocket` outside `src/api/`.
+
+**Protocol:**
+
+- The client sends `{ type: "subscribe", productIds }` for exactly the products on screen: the 24 on the current page, the one on a details page, or the cart lines.
+- The server pushes `{ type: "stock", productId, stock }` whenever one of them changes.
+- Subscriptions change without reconnecting, and are re-sent after every reconnect.
+
+**Recovery:** if the socket closes unexpectedly, it reconnects with **exponential backoff** (1 s, 2 s, 4 s … max 15 s) plus random jitter, so a server restart doesn't get hit by every client at the same instant. Status shows as _Live stock_ / _Reconnecting…_. Test it with Mock API controls → **Drop live connection**.
+
+**Stops when the page closes:** the hook's effect cleanup calls `close()`, which sets a "closed on purpose" flag (so no reconnect), clears any pending reconnect timer, and closes the socket. `useLiveStock.test.ts` checks the server sees zero connections after unmount.
+
+**Where updates go:**
+
+- **Grid and details page:** the displayed stock badge.
+- **Cart page:** `dispatch(stockUpdated)`, so quantities are re-capped automatically.
+
+**How WebSockets work** (for the walkthrough): the connection starts as an HTTP request with `Upgrade: websocket`. The server answers `101 Switching Protocols`, and from then on the same TCP connection carries small messages in **both** directions until either side closes it.
+
+**Considered:**
+
+- **Server-Sent Events (SSE):** simpler, one-way (server → client), works over plain HTTP, and the browser's `EventSource` reconnects automatically. It's actually a great fit for stock updates. But we need to tell the server _which_ products to watch, which SSE can't do on the same connection.
+- **Polling:** simplest (re-fetch every few seconds), but it's wasteful (most responses say "nothing changed") and updates are only as fresh as the interval.

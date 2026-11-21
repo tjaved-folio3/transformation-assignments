@@ -6,6 +6,8 @@ import { assetUrl } from '../../utils/assets.ts';
 
 type ProductCardProps = {
   product: Product;
+  /** Latest stock (live updates override the value the list was loaded with). */
+  stock: number;
 };
 
 /**
@@ -13,7 +15,7 @@ type ProductCardProps = {
  * The whole card is one real <a> link, so it is reachable with Tab and opens
  * with Enter. No onClick on a <div>, which keyboards can't use.
  */
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, stock }: ProductCardProps) {
   return (
     <Link to={`/products/${product.id}`} className="product-card__link">
       {/* alt="" because the product name right below says the same thing;
@@ -31,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <span className="rating">★ {product.rating.toFixed(1)}</span>
         <div className="product-card__meta">
           <span className="price">{formatPrice(product.price)}</span>
-          <StockBadge stock={product.stock} />
+          <StockBadge stock={stock} />
         </div>
       </div>
     </Link>

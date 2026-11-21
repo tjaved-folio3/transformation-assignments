@@ -976,3 +976,35 @@ img {
   color: #f1efe8;
   padding: 0.35rem 0;
 }
+
+/* ---------- Live stock status ---------- */
+
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.live-status::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #b4b2a9;
+}
+
+.live-status--live {
+  color: var(--color-accent-hover);
+}
+
+.live-status--live::before {
+  background: #1d9e75;
+}
+
+.live-status--reconnecting::before {
+  background: #ef9f27;
+}
