@@ -27,3 +27,19 @@ Each task records what we chose, what else we considered, and why.
 **Request status:** `RequestState<T>` in `src/types/request.ts` is a discriminated union (`idle | loading | success | error`). Separate booleans (`isLoading`, `isError`, `data`) allow 8 combinations, most of them impossible (loading *and* error). The union allows exactly the 4 real ones, and TypeScript only lets us read `data` after checking `status === 'success'`.
 
 **Considered:** TypeScript 7 (the new native compiler) was released, but `typescript-eslint` only supports up to 6.0, so we stay on 6. Looser settings (`strict: false`) would make migration faster but hide the bugs strict mode exists to catch.
+
+---
+
+## D1-2: Mocking the API
+
+**Choice:** [MSW](https://mswjs.io) (Mock Service Worker). In the browser, a Service Worker intercepts real `fetch` calls; in tests, `msw/node` does the same inside Node. The app's code is identical to what it would be with a real backend: switching to one is just `VITE_ENABLE_MOCKS=false` plus `VITE_API_BASE_URL`.
+
+**Seed data:** a seeded random generator, so the 5,000 products are identical everywhere (reproducible links, tests and bug reports).
+
+**Triggering errors:** a Dev panel writes "scenarios" to `localStorage`, and handlers check them on every request. We considered `?mock=500` URL flags, but they get lost when navigating between pages, and a panel is easier to demo.
+
+**Considered:**
+- **json-server:** a real HTTP server, but it needs a second process, and custom logic (409, idempotency, auth) is awkward.
+- **Fake functions** (like the Week 1 `mockApi.js`): simplest, but they skip HTTP entirely. Status codes, headers and `fetch` errors would never be exercised, so the data layer would be untested.
+
+**Trade-off:** the MSW worker adds ~160 kB to the bundle. It's loaded with a dynamic `import()` only when mocks are on, so a real deployment would not ship it.
