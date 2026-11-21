@@ -248,3 +248,25 @@ Full details and the token-storage trade-off are in [`docs/auth.md`](auth.md).
 - **React Router loaders** (`redirect()` inside a loader): powerful, but they would mix data loading into routing.
 - **A wrapper component per page:** too easy to forget on a new page.
 - **Checking auth inside each page:** duplicated logic.
+
+---
+
+## D3-2: Cart and checkout
+
+**Choice:**
+
+- **Cart rules live in the reducer.** Quantities are clamped to `1..stock` in one function, so neither the cart page buttons nor "Add to cart" can exceed stock, and a `stockUpdated` action caps existing lines.
+- **Persistence:** a listener middleware saves the cart to `localStorage` after every cart action. At startup each saved line is _validated_, and invalid lines are dropped rather than trusted.
+- **Idempotent checkout:** each checkout attempt gets a UUID `Idempotency-Key`, stored in `sessionStorage` together with a signature of the cart contents (`p-0001x2,p-0004x1`).
+  - **Retry** (button, or after a reload) → same cart → same key → the server returns the original order. No duplicate.
+  - **Cart changed** (e.g. after a 409) → new signature → new key, because it's genuinely a different order.
+  - **Success** → the key is cleared.
+- **Double-click guard:** a `useRef` flag, plus a disabled button.
+- **409:** we re-fetch the stock of each product id in `error.details`, dispatch `stockUpdated`, and name each product in the message. Checkout stays disabled while an out-of-stock line remains.
+- **Navigation order bug found by a test:** clearing the cart before navigating re-rendered checkout with an empty cart, and its guard redirected to `/cart`. Fix: `navigate(..., { flushSync: true })` first, _then_ `cartCleared()`.
+- **Order confirmation** polls `GET /orders/:id` every 1.5 s until `confirmed`. The cleanup aborts the request and clears the timer.
+
+**Considered:**
+
+- **Disabling the button only:** this doesn't cover a timeout followed by a reload, or a response lost on the network. The server must dedupe, which is what idempotency keys are for.
+- **Generating the key on the server:** a client-generated key is the standard approach (as with Stripe), because the client is the one that retries.

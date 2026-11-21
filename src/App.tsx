@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { flushSync } from 'react-dom';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router';
 import { router } from './router.tsx';
@@ -15,7 +16,8 @@ function App({ mocksEnabled }: AppProps) {
   return (
     // <Provider> makes the Redux store available to every component below it.
     <Provider store={store}>
-      <RouterProvider router={router} />
+      {/* flushSync lets navigate(..., { flushSync: true }) commit immediately (used by checkout). */}
+      <RouterProvider router={router} flushSync={(update) => void flushSync(update)} />
       {mocksEnabled && (
         <Suspense fallback={null}>
           <DevPanel />

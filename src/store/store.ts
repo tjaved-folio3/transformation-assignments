@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { configureApiAuth } from '../api/client.ts';
 import { authReducer, sessionExpired } from './authSlice.ts';
 import { cartReducer } from './cartSlice.ts';
-import { loadAuthState, persistenceMiddleware } from './persistence.ts';
+import { loadAuthState, loadCartState, persistenceMiddleware } from './persistence.ts';
 
 /**
  * The single Redux store: global CLIENT state that many components share
@@ -25,7 +25,7 @@ export function createAppStore(preloadedState?: Partial<RootState>) {
   });
 }
 
-export const store = createAppStore({ auth: loadAuthState() });
+export const store = createAppStore({ auth: loadAuthState(), cart: loadCartState() });
 
 /**
  * Plug the store into the data layer (dependency injection, see D1-4):

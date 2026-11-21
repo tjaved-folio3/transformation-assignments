@@ -173,6 +173,8 @@ export const handlers = [
       const product = db.findProduct(item.productId);
       const forced = index === 0 && isScenarioOn('orders-409');
       if (product && (forced || item.quantity > product.stock)) {
+        // Forced scenario: pretend another shopper just bought the last one.
+        if (forced) db.setStock(product.id, 0);
         const left = forced ? 0 : product.stock;
         outOfStock[item.productId] =
           left === 0 ? `${product.name} is out of stock` : `Only ${left} of ${product.name} left`;
